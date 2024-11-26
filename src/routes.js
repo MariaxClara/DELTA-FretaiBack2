@@ -20,7 +20,7 @@ router.get("/", (req, res) => {
 });
 
 router.get("/driverInfo", async (req, res) => {
-    const { email } =  req.params;
+    const { email } =  req.body;
     try{
       const response = await driverInfo(email);
       res.json(response);
@@ -29,7 +29,7 @@ router.get("/driverInfo", async (req, res) => {
     }
 })
 router.get("/driverInvites", async (req, res) => {
-    const { id } =  req.params;
+    const { id } =  req.body;
     try{
       const response = await driverInvites(id);
       res.json(response);
@@ -38,7 +38,9 @@ router.get("/driverInvites", async (req, res) => {
     }
 })
 router.get("/driverUsers", async (req, res) => {
-    const { id } =  req.params;
+    console.log(req.body)
+    const { id } =  req.body;
+    console.log(id)
     try{
       const response = await driverUsers(id);
       res.json(response);
@@ -47,7 +49,7 @@ router.get("/driverUsers", async (req, res) => {
     }
 })
 router.get("/imagePath", async (req, res) => {
-    const { email } =  req.params;
+    const { email } =  req.body;
     try{
       const response = await imagePath(email);
       res.json(response);
@@ -56,7 +58,7 @@ router.get("/imagePath", async (req, res) => {
     }
 })
 router.get("/login", async (req, res) => {
-  const { email, password } =  req.params;
+  const { email, password } =  req.body;
   try{
     const response = await login(email, password);
     res.json(response);
@@ -65,7 +67,7 @@ router.get("/login", async (req, res) => {
   }
 })
 router.get("/passengerInfo", async (req, res) => {
-  const { email } =  req.params;
+  const { email } =  req.body;
   try{
     const response = await passengerInfo(email);
     res.json(response);
@@ -88,7 +90,7 @@ router.post("/", (req, res) => {
 });
 
 router.post("/addUserEmailInvite", async (req, res) => {
-    const { email, id } =  req.params;
+    const { email, id } =  req.body;
     try{
       const response  = await addDriverInvite(email, id);
       res.json(response);
@@ -97,7 +99,7 @@ router.post("/addUserEmailInvite", async (req, res) => {
     }
 })
 router.post("/changePassword", async (req, res) => {
-  const { email, newPassword, confirmPassword } =  req.params;
+  const { email, newPassword, confirmPassword } =  req.body;
   try{
     const response  = await changePassword(email, newPassword, confirmPassword);
     res.json(response);
@@ -106,7 +108,7 @@ router.post("/changePassword", async (req, res) => {
   }
 })
 router.post("/updateUserPay", async (req, res) => {
-  const { email, paid } =  req.params;
+  const { email, paid } =  req.body;
   try{
     const response  = await updateUserPay(email, paid);
     res.json(response);
