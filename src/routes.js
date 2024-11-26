@@ -21,7 +21,7 @@ router.get("/driverInfo", async (req, res) => {
       res.status(500).send(error);
     }
 })
-router.get("/driverInvite", async (req, res) => {
+router.get("/driverInvites", async (req, res) => {
     const { id } =  req.params;
     try{
       const response = await driverInvites(id);
