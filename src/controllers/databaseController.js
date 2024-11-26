@@ -1,6 +1,4 @@
-import connectDatabase from '../services/database.js';
-
-const { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType } = connectDatabase();
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
