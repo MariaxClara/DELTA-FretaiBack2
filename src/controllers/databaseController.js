@@ -1,6 +1,6 @@
 import connectDatabase from '../db/database';
 
-const { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite } = connectDatabase();
+const { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType } = connectDatabase();
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -97,6 +97,18 @@ async function tables() {
 
 }
 
+
+async function userType(id) {
+  const userType = await getUserType(id);
+
+  if (!userType) {
+    return { statusCode: 404, body: { error: 'Não foi possivel encontrar o usuário' } };
+  }
+  return { statusCode: 200, body: userType }
+  
+}
+
+
 //POST FUNCTIONS
 async function addDriverInvite(email, id) {
     if (!email) {
@@ -156,6 +168,7 @@ export {
     login,
     passengerInfo,
     tables,
+    userType,
     addDriverInvite,
     changePassword,
     updateUserPay
