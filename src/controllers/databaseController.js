@@ -131,6 +131,23 @@ async function changePassword(email, newPassword, confirmPassword) {
 
 }
 
+
+async function updateUserPay(email, paid) {
+  if (!email) {
+    return { statusCode: 400, body: { error: 'Email é necessário' } };
+  }
+  if (paid==null) {
+    return { statusCode: 400, body: { error: 'Confirmação de pagamento é necessário' } };
+  }
+
+  const res = await updatePay(email, paid);
+
+  if (!res) {
+    return { statusCode: 404, body: { error: 'Motorista não encontrado' } };
+  }
+  return { statusCode: 200, body: { message: 'success' } };
+}
+
 export {
     driverInfo,
     driverInvites,
@@ -140,5 +157,6 @@ export {
     passengerInfo,
     tables,
     addDriverInvite,
-    changePassword
+    changePassword,
+    updateUserPay
 }

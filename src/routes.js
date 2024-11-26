@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, changePassword } from "./controllers/databaseController.js";
+import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, changePassword, updateUserPay } from "./controllers/databaseController.js";
 
 const router = Router();
 
@@ -93,6 +93,15 @@ router.post("/changePassword", async (req, res) => {
   const { email, newPassword, confirmPassword } =  req.params;
   try{
     const response  = await changePassword(email, newPassword, confirmPassword);
+    res.json(response);
+  } catch (error){
+    res.status(500).send(error);
+  }
+})
+router.post("/updateUserPay", async (req, res) => {
+  const { email, paid } =  req.params;
+  try{
+    const response  = await updateUserPay(email, paid);
     res.json(response);
   } catch (error){
     res.status(500).send(error);
