@@ -19,7 +19,6 @@ async function driverInfo(email) {
 
 
 async function driverInvites(id) {
-
   if (!id) {
     return { statusCode: 400, body: { error: 'Id é necessário' } };
   }
@@ -34,9 +33,24 @@ async function driverInvites(id) {
 
 }
 
+
+async function driverUsers(id) {
+    if (!id) {
+        return { statusCode: 400, body: { error: 'Id é necessário' } };
+    }
+    
+    const usersDriverInfo = await getUsersByDriverID(id);
+    
+    if (!usersDriverInfo) {
+        return { statusCode: 404, body: { error: 'Passageiros do motorista não encontrados' } };
+    }
+    
+    return { statusCode: 200, body: usersDriverInfo };
+}
+
+
 //POST FUNCTIONS
 async function addDriverInvite(email, id) {
-
     if (!email) {
       return { statusCode: 400, body: { error: 'Email é necessário' } };
     }
@@ -56,5 +70,6 @@ async function addDriverInvite(email, id) {
 export {
     driverInfo,
     driverInvites,
+    driverUsers,
     addDriverInvite
 }
