@@ -267,7 +267,7 @@ async function addUserEmailInvite(email, driverId) {
   }
 }
 
-async function getuserType(id) {
+async function getUserType(id) {
   return false
 }
 
