@@ -90,6 +90,13 @@ async function passengerInfo(email) {
 
 }
 
+
+async function tables() {
+  const tables = await getTables();
+  return tables;
+
+}
+
 //POST FUNCTIONS
 async function addDriverInvite(email, id) {
     if (!email) {
@@ -115,5 +122,6 @@ export {
     imagePath,
     login,
     passengerInfo,
+    tables,
     addDriverInvite
 }

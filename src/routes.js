@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addDriverInvite, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo } from "./controllers/databaseController.js";
+import { addDriverInvite, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables } from "./controllers/databaseController.js";
 
 const router = Router();
 
@@ -61,6 +61,14 @@ router.get("/passengerInfo", async (req, res) => {
   const { email } =  req.params;
   try{
     const response = await passengerInfo(email);
+    res.json(response);
+  } catch (error){
+    res.status(500).send(error);
+  }
+})
+router.get("/tables", async (req, res) => {
+  try{
+    const response = await tables();
     res.json(response);
   } catch (error){
     res.status(500).send(error);
