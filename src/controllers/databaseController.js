@@ -74,6 +74,22 @@ async function login(email, password) {
 
 }
 
+
+async function passengerInfo(email) {
+  if (!email) {
+    return { statusCode: 400, body: { error: 'Email é necessário' } };
+  }
+
+  const passengerInfo = await getPassengerInfoByEmail(email);
+
+  if (!passengerInfo) {
+    return { statusCode: 404, body: { error: 'Passageiro não encontrado' } };
+  }
+
+  return { statusCode: 200, body: passengerInfo };
+
+}
+
 //POST FUNCTIONS
 async function addDriverInvite(email, id) {
     if (!email) {
@@ -98,5 +114,6 @@ export {
     driverUsers,
     imagePath,
     login,
+    passengerInfo,
     addDriverInvite
 }
