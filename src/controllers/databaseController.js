@@ -115,6 +115,22 @@ async function addDriverInvite(email, id) {
     return { statusCode: 200, body: { message: 'success' } };
 }
 
+
+async function changePassword(email, newPassword, confirmPassword) {
+  if (newPassword !== confirmPassword) {
+    return { status: 'error', message: 'As senhas não coincidem' };
+  }
+
+  const updateResult = await updatePassword(email, newPassword);
+
+  if (updateResult) {
+    return { status: 'success', message: 'Senha atualizada com sucesso' };
+  } else {
+    return { status: 'error', message: 'Usuário não encontrado ou erro ao atualizar senha' };
+  }
+
+}
+
 export {
     driverInfo,
     driverInvites,
@@ -123,5 +139,6 @@ export {
     login,
     passengerInfo,
     tables,
-    addDriverInvite
+    addDriverInvite,
+    changePassword
 }
