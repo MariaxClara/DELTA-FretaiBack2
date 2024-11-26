@@ -1,4 +1,4 @@
-import connectDatabase from '../db/database';
+import connectDatabase from '../services/database.js';
 
 const { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType } = connectDatabase();
 
@@ -105,7 +105,7 @@ async function userType(id) {
     return { statusCode: 404, body: { error: 'Não foi possivel encontrar o usuário' } };
   }
   return { statusCode: 200, body: userType }
-  
+
 }
 
 
