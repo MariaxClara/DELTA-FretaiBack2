@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addDriverInvite, driverInfo, driverInvite } from "./controllers/databaseController.js";
+import { addDriverInvite, driverInfo, driverInvites } from "./controllers/databaseController.js";
 
 const router = Router();
 
@@ -24,7 +24,7 @@ router.get("/driverInfo", async (req, res) => {
 router.get("/driverInvite", async (req, res) => {
     const { id } =  req.params;
     try{
-      const response = await driverInvite(id);
+      const response = await driverInvites(id);
       res.json(response);
     } catch (error){
       res.status(500).send(error);

@@ -18,7 +18,7 @@ async function driverInfo(email) {
 }
 
 
-async function driverInvite(id) {
+async function driverInvites(id) {
 
   if (!id) {
     return { statusCode: 400, body: { error: 'Id é necessário' } };
@@ -55,6 +55,6 @@ async function addDriverInvite(email, id) {
 
 export {
     driverInfo,
-    driverInvite,
+    driverInvites,
     addDriverInvite
 }
