@@ -20,6 +20,20 @@ async function addDriverInvite(email, id) {
     return { statusCode: 200, body: { message: 'success' } };
 }
 
+async function driverInfo(email) {
+    if (!email) {
+        return { statusCode: 400, body: { error: 'Email é necessário' } };
+    }
+    
+    const driverInfo = await getDriverInfoByEmail(email);
+    
+    if (!driverInfo) {
+        return { statusCode: 404, body: { error: 'Motorista não encontrado' } };
+    }
+    
+    return { statusCode: 200, body: driverInfo };
+}
+
 export {
     addDriverInvite
 }
