@@ -63,6 +63,17 @@ async function imagePath(email) {
 }
 
 
+async function login(email, password) {
+    const user = await loginUser(email, password);
+
+    if (user) {
+      return { status: 'success', user };
+    } else {
+      return { status: 'error', message: 'Credenciais inválidas' };
+    }
+
+}
+
 //POST FUNCTIONS
 async function addDriverInvite(email, id) {
     if (!email) {
@@ -86,5 +97,6 @@ export {
     driverInvites,
     driverUsers,
     imagePath,
+    login,
     addDriverInvite
 }
