@@ -1,12 +1,18 @@
 import pkg from 'pg';
+import * as dotenv from "dotenv";
+
+dotenv.config();
 const { Pool } = pkg;
 
+
+const {BDUSER, BDHOST, BDPASSWORD, BDDATABASE, BDPORT} = process.env || 3000;
+
 const pool = new Pool({
-  user: 'postgres',
-  host: 'fretai-dev.cd608okioi2v.sa-east-1.rds.amazonaws.com',
-  database: 'postgres',
-  password: 'RvDhpqjy5g0uYTj454Do',
-  port: 5432,
+  user: BDUSER,
+  host: BDHOST,
+  database: BDDATABASE,
+  password: BDPASSWORD,
+  port: BDPORT,
   ssl: {
     rejectUnauthorized: false,
   },
