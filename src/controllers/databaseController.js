@@ -49,6 +49,20 @@ async function driverUsers(id) {
 }
 
 
+async function imagePath(email) {
+    if (!email) {
+        return { statusCode: 400, body: { error: 'Email é necessário' } };
+    }
+
+    const imagePath = await getImagePathByUser(email);
+    
+    if (!imagePath) {
+        return { statusCode: 404, body: { error: 'Imagem não encontrada' } };
+    }
+    return { statusCode: 200, body: { imagePath } };
+}
+
+
 //POST FUNCTIONS
 async function addDriverInvite(email, id) {
     if (!email) {
@@ -71,5 +85,6 @@ export {
     driverInfo,
     driverInvites,
     driverUsers,
+    imagePath,
     addDriverInvite
 }
