@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { teste } from "./controllers/example.js";
+import { addDriverInvite } from "./controllers/databaseController.js";
 
 const router = Router();
 
@@ -17,7 +17,7 @@ router.get("/example", async (req, res) => {
     try{
       const dadoBanco = await teste(dado);
       res.json(dadoBanco);
-    }catch (error){
+    } catch (error){
       res.status(500).send(error);
     }
 })
@@ -25,5 +25,15 @@ router.get("/example", async (req, res) => {
 router.post("/", (req, res) => {
     res.sendStatus(200);
 });
+
+router.post("/addUserEmailInvite", async (req, res) => {
+    const { email, id } =  req.params;
+    try{
+      const response  = await addDriverInvite(email, id);
+      res.json(response);
+    } catch (error){
+      res.status(500).send(error);
+    }
+})
 
 export default router;
