@@ -1,5 +1,12 @@
 import { Router } from "express";
+import  sgMail from '@sendgrid/mail';
+import * as dotenv from "dotenv";
 import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, changePassword, updateUserPay } from "./controllers/databaseController.js";
+
+
+dotenv.config();
+const {SENDGRID_API_KEY} = process.env;
+sgMail.setApiKey(SENDGRID_API_KEY);
 
 const router = Router();
 
@@ -107,6 +114,16 @@ router.post("/updateUserPay", async (req, res) => {
     res.status(500).send(error);
   }
 })
+router.post('/sendEmail', async (req, res) => {
+  const { to, from, subject, text } = req.body;
+  const msg = { to, from, subject, text };
+  try {
+    await sgMail.send(msg);
+    res.status(200).send('Convite enviado com sucesso');
+  } catch (error) {
+    res.status(500).send('Não foi possível enviar o convite: ',error);
+  }
+});
 
 
 export default router;
