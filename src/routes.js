@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { teste } from "./controllers/teste.js";
+import { teste } from "./controllers/example.js";
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.get("/", (req, res) => {
     res.send("Aplicação para consultar informações dos passageiros do Fretai");
 });
 
-router.get("/myUrl", async (req, res) => {
+router.get("/example", async (req, res) => {
     const { dado } =  req.params;
     try{
       const dadoBanco = await teste(dado);
