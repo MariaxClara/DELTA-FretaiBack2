@@ -106,8 +106,8 @@ router.post("/changePassword/:email/:newPassword/:confirmPassword", async (req, 
     res.status(500).send(error);
   }
 })
-router.post("/updateUserPay/:email/:paid", async (req, res) => {
-  const { email, paid } =  req.params;
+router.post("/updateUserPay", async (req, res) => {
+  const { email, paid } =  req.body;
   try{
     const response  = await updateUserPay(email, paid);
     res.json(response);
