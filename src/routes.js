@@ -39,7 +39,6 @@ router.get("/driverInvites/:id", async (req, res) => {
 })
 router.get("/driverUsers/:id", async (req, res) => {
     const { id } =  req.params;
-    console.log(id)
     try{
       const response = await driverUsers(id);
       res.json(response);
@@ -88,8 +87,8 @@ router.post("/", (req, res) => {
     res.sendStatus(200);
 });
 
-router.post("/addUserEmailInvite/:email/:id", async (req, res) => {
-    const { email, id } =  req.params;
+router.post("/addUserEmailInvite", async (req, res) => {
+    const { email, id } =  req.body;
     try{
       const response  = await addDriverInvite(email, id);
       res.json(response);
@@ -97,8 +96,8 @@ router.post("/addUserEmailInvite/:email/:id", async (req, res) => {
       res.status(500).send(error);
     }
 })
-router.post("/changePassword/:email/:newPassword/:confirmPassword", async (req, res) => {
-  const { email, newPassword, confirmPassword } =  req.params;
+router.post("/changePassword", async (req, res) => {
+  const { email, newPassword, confirmPassword } =  req.body;
   try{
     const response  = await changePassword(email, newPassword, confirmPassword);
     res.json(response);
