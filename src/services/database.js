@@ -4,8 +4,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 const { Pool } = pkg;
 
-
-const {BDUSER, BDHOST, BDPASSWORD, BDDATABASE, BDPORT} = process.env || 3000;
+const {BDUSER, BDHOST, BDPASSWORD, BDDATABASE, BDPORT} = process.env;
 
 const pool = new Pool({
   user: BDUSER,
