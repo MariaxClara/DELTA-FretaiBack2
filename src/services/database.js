@@ -164,7 +164,7 @@ async function getUsersByDriverID(id){
     const client = await pool.connect();
     const res = await client.query(`
       select 
-      p.nome AS passageiro_nome, 
+      u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
       ui.image_path AS passageiro_imagem,
       p.pago AS passageiro_pagamento
@@ -266,8 +266,30 @@ async function addUserEmailInvite(email, driverId) {
   }
 }
 
+async function addPassenger(passageiro_user_id, motorista_id) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `
+      insert into passageiros (passageiro_id, user_id, motorista_id)
+      values ( ((select COUNT(*) from passageiros) + 1), $1, $2)
+      `,
+      [passageiro_user_id, motorista_id]
+    );
+
+    if (res.rowCount === 0) return null;
+    return res.rows[0];
+
+  } catch (error) {
+    console.error('Erro ao adicionar passageiro na van do motorista:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
 async function getUserType(id) {
   return false
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType };
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger };

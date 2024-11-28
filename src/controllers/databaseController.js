@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -158,6 +158,22 @@ async function updateUserPay(email, paid) {
   return { statusCode: 200, body: { message: 'success' } };
 }
 
+async function addPassengerUser(passenger_id, motorista_id) {
+  if(!passenger_id) {
+    return { statusCode: 400, body: { error: 'É necessário o id de usuário do passageiro' } };
+  }
+  if(!motorista_id) {
+    return { statusCode: 400, body: { error: 'É necessário o id de usuário do passageiro' } };
+  }
+
+  const res = await addPassenger(passenger_id, motorista_id)
+
+  if (!res) {
+    return { statusCode: 404, body: { error: 'Não foi possível adicionar o passageiro na van do motorista' } };
+  }
+  return { statusCode: 200, body: { message: 'success' } };
+}
+
 export {
     driverInfo,
     driverInvites,
@@ -169,5 +185,6 @@ export {
     userType,
     addDriverInvite,
     changePassword,
-    updateUserPay
+    updateUserPay,
+    addPassengerUser
 }
