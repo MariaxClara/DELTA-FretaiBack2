@@ -125,9 +125,9 @@ router.post('/sendEmail', async (req, res) => {
   }
 });
 router.post('/addPassengerUser', async (req, res) => {
-  const { id_user, id_motorista} = req.body;
+  const { email, password, code} = req.body;
   try {
-    const response  = await addPassengerUser(id_user, id_motorista);
+    const response  = await addPassengerUser(email, password, code);
     res.json(response);
   } catch (error) {
     res.status(500).send('Não foi possível adicionar o passageiro: ',error);

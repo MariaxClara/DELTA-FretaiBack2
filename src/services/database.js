@@ -271,10 +271,12 @@ async function getDriverByCode(code){
 
   const userRes = await client.query(`SELECT user_id FROM motoristas WHERE invite_cod = $1`, [code]);
 
-  if (userRes.rows.length === 0) { return -1; }
+  if (userRes.rows.length === 0) { 
+    console.log('Código não encontrado na base')
+    return -1; 
+  }
 
   return userRes.rows[0].user_id
-
 
 }
 

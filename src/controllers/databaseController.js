@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -158,12 +158,18 @@ async function updateUserPay(email, paid) {
   return { statusCode: 200, body: { message: 'success' } };
 }
 
-async function addPassengerUser(passenger_id, motorista_id) {
-  if(!passenger_id) {
-    return { statusCode: 400, body: { error: 'É necessário o id de usuário do passageiro' } };
-  }
+async function addPassengerUser(email, password, code) {
+  const motorista_id = await getDriverByCode(code)
   if(!motorista_id) {
-    return { statusCode: 400, body: { error: 'É necessário o id de usuário do passageiro' } };
+    console.log('Código não encontrado')
+    return -1;
+  }
+
+  const passenger_info = await login(email, password)
+  const passenger_id = passenger_info.user_id
+  if(!passenger_id) {
+    console.log('Login ou senha incorretos')
+    return -2;
   }
 
   const res = await addPassenger(passenger_id, motorista_id)
