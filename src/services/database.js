@@ -266,6 +266,18 @@ async function addUserEmailInvite(email, driverId) {
   }
 }
 
+async function getDriverByCode(code){
+  const client = await pool.connect();
+
+  const userRes = await client.query(`SELECT user_id FROM motoristas WHERE invite_cod = $1`, [code]);
+
+  if (userRes.rows.length === 0) { return -1; }
+
+  return userRes.rows[0].user_id
+
+
+}
+
 async function addPassenger(passageiro_user_id, motorista_id) {
   const client = await pool.connect();
   try {
@@ -292,4 +304,4 @@ async function getUserType(id) {
   return false
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger };
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode };
