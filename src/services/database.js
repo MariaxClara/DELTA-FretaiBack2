@@ -69,27 +69,17 @@ async function getDriverInfoByEmail(email) {
   try {
     const client = await pool.connect();
 
-    const userRes = await client.query(`SELECT user_id, email FROM users WHERE email = $1`, [email]);
+    const userRes = await client.query(`SELECT user_id, email, nome, telefone FROM users WHERE email = $1`, [email]);
 
     if (userRes.rows.length === 0) {
       client.release();
-      console.log("Usuário não encontrado.");
-      return null;
-    }
-
-    const userId = userRes.rows[0].user_id;
-    const userEmail = userRes.rows[0].email;
-
-    const driverRes = await client.query(`SELECT nome, telefone FROM motoristas WHERE user_id = $1`, [userId]);
-
-    client.release();
-
-    if (driverRes.rows.length === 0) {
       console.log("Motorista não encontrado.");
       return null;
     }
 
-    return { nome: driverRes.rows[0].nome, email: userEmail, telefone: driverRes.rows[0].telefone };
+    client.release();
+
+    return { nome: userRes.rows[0].nome, email: userRes.rows[0].email, telefone: userRes.rows[0].telefone };
   } catch (error) {
     console.error('Erro ao obter informações do motorista:', (error).message);
     return null;
@@ -231,10 +221,8 @@ async function updatePay(email, paid) {
       `,
       [paid, email]
     );
-
     if (res.rowCount === 0) return null;
-    return res.rows[0];
-
+    return res
   } catch (error) {
     console.error('Erro ao atualizar a confirmação de pagamento:', (error).message);
     return null;
