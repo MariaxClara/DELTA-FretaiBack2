@@ -162,14 +162,14 @@ async function addPassengerUser(email, password, code) {
   const motorista_id = await getDriverByCode(code)
   if(!motorista_id) {
     console.log('Código não encontrado')
-    return -1;
+    return { statusCode: 400, body: { message: -1 } };
   }
 
   const passenger_info = await login(email, password)
-  const passenger_id = passenger_info.user_id
+  const passenger_id = (passenger_info.user).user_id
   if(!passenger_id) {
     console.log('Login ou senha incorretos')
-    return -2;
+    return { statusCode: 400, body: { message: -2 } };
   }
 
   const res = await addPassenger(passenger_id, motorista_id)
@@ -177,7 +177,7 @@ async function addPassengerUser(email, password, code) {
   if (!res) {
     return { statusCode: 404, body: { error: 'Não foi possível adicionar o passageiro na van do motorista' } };
   }
-  return { statusCode: 200, body: { message: 'success' } };
+  return { statusCode: 200, body: { message: 1 } };
 }
 
 export {

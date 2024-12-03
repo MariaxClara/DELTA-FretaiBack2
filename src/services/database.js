@@ -280,7 +280,7 @@ async function addPassenger(passageiro_user_id, motorista_id) {
     );
 
     if (res.rowCount === 0) return null;
-    return res.rows[0];
+    return res
 
   } catch (error) {
     console.error('Erro ao adicionar passageiro na van do motorista:', (error).message);
