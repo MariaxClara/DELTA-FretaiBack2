@@ -129,11 +129,10 @@ router.post('/addPassengerUser', async (req, res) => {
   
   try {
     const response  = await addPassengerUser(email, password, code);
-    console.log(response)
-
-    res.json(response);
+    res.status(response.statusCode).send(response.body)
   } catch (error) {
-    res.status(500).send('Não foi possível adicionar o passageiro: ',error);
+    console.log(error)
+    res.status(500).send(error);
   }
 });
 

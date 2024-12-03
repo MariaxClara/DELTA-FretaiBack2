@@ -160,16 +160,16 @@ async function updateUserPay(email, paid) {
 
 async function addPassengerUser(email, password, code) {
   const motorista_id = await getDriverByCode(code)
-  if(!motorista_id) {
+  if(motorista_id==-1) {
     console.log('Código não encontrado')
-    return { statusCode: 400, body: { message: -1 } };
+    return { statusCode: 401, body: { message: -1 } };
   }
 
   const passenger_info = await login(email, password)
   const passenger_id = (passenger_info.user).user_id
   if(!passenger_id) {
     console.log('Login ou senha incorretos')
-    return { statusCode: 400, body: { message: -2 } };
+    return { statusCode: 402, body: { message: -2 } };
   }
 
   const res = await addPassenger(passenger_id, motorista_id)
