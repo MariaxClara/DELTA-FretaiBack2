@@ -4,8 +4,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 const { Pool } = pkg;
 
-
-const {BDUSER, BDHOST, BDPASSWORD, BDDATABASE, BDPORT} = process.env || 3000;
+const {BDUSER, BDHOST, BDPASSWORD, BDDATABASE, BDPORT} = process.env;
 
 const pool = new Pool({
   user: BDUSER,
@@ -70,27 +69,17 @@ async function getDriverInfoByEmail(email) {
   try {
     const client = await pool.connect();
 
-    const userRes = await client.query(`SELECT user_id, email FROM users WHERE email = $1`, [email]);
+    const userRes = await client.query(`SELECT user_id, email, nome, telefone FROM users WHERE email = $1`, [email]);
 
     if (userRes.rows.length === 0) {
       client.release();
-      console.log("Usuário não encontrado.");
-      return null;
-    }
-
-    const userId = userRes.rows[0].user_id;
-    const userEmail = userRes.rows[0].email;
-
-    const driverRes = await client.query(`SELECT nome, telefone FROM motoristas WHERE user_id = $1`, [userId]);
-
-    client.release();
-
-    if (driverRes.rows.length === 0) {
       console.log("Motorista não encontrado.");
       return null;
     }
 
-    return { nome: driverRes.rows[0].nome, email: userEmail, telefone: driverRes.rows[0].telefone };
+    client.release();
+
+    return { nome: userRes.rows[0].nome, email: userRes.rows[0].email, telefone: userRes.rows[0].telefone };
   } catch (error) {
     console.error('Erro ao obter informações do motorista:', (error).message);
     return null;
@@ -165,7 +154,7 @@ async function getUsersByDriverID(id){
     const client = await pool.connect();
     const res = await client.query(`
       select 
-      p.nome AS passageiro_nome, 
+      u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
       ui.image_path AS passageiro_imagem,
       p.pago AS passageiro_pagamento
@@ -232,10 +221,8 @@ async function updatePay(email, paid) {
       `,
       [paid, email]
     );
-
     if (res.rowCount === 0) return null;
-    return res.rows[0];
-
+    return res
   } catch (error) {
     console.error('Erro ao atualizar a confirmação de pagamento:', (error).message);
     return null;
@@ -267,8 +254,44 @@ async function addUserEmailInvite(email, driverId) {
   }
 }
 
+async function getDriverByCode(code){
+  const client = await pool.connect();
+
+  const userRes = await client.query(`SELECT user_id FROM motoristas WHERE invite_cod = $1`, [code]);
+
+  if (userRes.rows.length === 0) { 
+    console.log('Código não encontrado na base')
+    return -1; 
+  }
+
+  return userRes.rows[0].user_id
+
+}
+
+async function addPassenger(passageiro_user_id, motorista_id) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `
+      insert into passageiros (passageiro_id, user_id, motorista_id)
+      values ( ((select COUNT(*) from passageiros) + 1), $1, $2)
+      `,
+      [passageiro_user_id, motorista_id]
+    );
+
+    if (res.rowCount === 0) return null;
+    return res
+
+  } catch (error) {
+    console.error('Erro ao adicionar passageiro na van do motorista:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
 async function getUserType(id) {
   return false
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType };
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode };

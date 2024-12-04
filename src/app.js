@@ -7,7 +7,8 @@ import cors from 'cors';
 dotenv.config();
 const app = express();
 app.use(cors());
-const {PORT} = process.env || 3000;
+let {PORT} = process.env;
+if(!PORT) PORT= 3000;
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled Rejection at: ", reason.stack ?? reason);

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -122,6 +122,17 @@ router.post('/sendEmail', async (req, res) => {
     res.status(200).send('Convite enviado com sucesso');
   } catch (error) {
     res.status(500).send('Não foi possível enviar o convite: ',error);
+  }
+});
+router.post('/addPassengerUser', async (req, res) => {
+  const { email, password, code} = req.body;
+  
+  try {
+    const response  = await addPassengerUser(email, password, code);
+    res.status(response.statusCode).send(response.body)
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
   }
 });
 

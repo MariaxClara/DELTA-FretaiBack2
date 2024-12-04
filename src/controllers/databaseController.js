@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -158,6 +158,28 @@ async function updateUserPay(email, paid) {
   return { statusCode: 200, body: { message: 'success' } };
 }
 
+async function addPassengerUser(email, password, code) {
+  const motorista_id = await getDriverByCode(code)
+  if(motorista_id==-1) {
+    console.log('Código não encontrado')
+    return { statusCode: 401, body: { message: -1 } };
+  }
+
+  const passenger_info = await login(email, password)
+  const passenger_id = (passenger_info.user).user_id
+  if(!passenger_id) {
+    console.log('Login ou senha incorretos')
+    return { statusCode: 402, body: { message: -2 } };
+  }
+
+  const res = await addPassenger(passenger_id, motorista_id)
+
+  if (!res) {
+    return { statusCode: 404, body: { error: 'Não foi possível adicionar o passageiro na van do motorista' } };
+  }
+  return { statusCode: 200, body: { message: 1 } };
+}
+
 export {
     driverInfo,
     driverInvites,
@@ -169,5 +191,6 @@ export {
     userType,
     addDriverInvite,
     changePassword,
-    updateUserPay
+    updateUserPay,
+    addPassengerUser
 }
