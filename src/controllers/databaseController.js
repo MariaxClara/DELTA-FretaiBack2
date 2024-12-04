@@ -162,15 +162,16 @@ async function addPassengerUser(email, password, code) {
   const motorista_id = await getDriverByCode(code)
   if(motorista_id==-1) {
     console.log('Código não encontrado')
-    return { statusCode: 401, body: { message: -1 } };
+    return { statusCode: 400, body: { message: -1 } };
   }
 
-  const passenger_info = await login(email, password)
-  const passenger_id = (passenger_info.user).user_id
-  if(!passenger_id) {
+  const passenger_info = await loginUser(email, password)
+  console.log(passenger_info)
+   if(passenger_info==null) {
     console.log('Login ou senha incorretos')
-    return { statusCode: 402, body: { message: -2 } };
+    return { statusCode: 401, body: { message: -2 } };
   }
+  const passenger_id = (passenger_info.user).user_id
 
   const res = await addPassenger(passenger_id, motorista_id)
 
@@ -179,6 +180,8 @@ async function addPassengerUser(email, password, code) {
   }
   return { statusCode: 200, body: { message: 1 } };
 }
+
+
 
 export {
     driverInfo,
