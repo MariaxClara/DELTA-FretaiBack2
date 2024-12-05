@@ -55,15 +55,9 @@ router.get("/imagePath/:email", async (req, res) => {
       res.status(500).send(error);
     }
 })
-router.get("/login/:email/:password", async (req, res) => {
-  const { email, password } =  req.params;
-  try{
-    const response = await login(email, password);
-    res.json(response);
-  } catch (error){
-    res.status(500).send(error);
-  }
-})
+
+
+
 router.get("/passengerInfo/:email", async (req, res) => {
   const { email } =  req.params;
   try{
@@ -122,6 +116,28 @@ router.post('/sendEmail', async (req, res) => {
     res.status(200).send('Convite enviado com sucesso');
   } catch (error) {
     res.status(500).send('Não foi possível enviar o convite: ',error);
+  }
+});
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const response = await login(email, password);
+    res.json(response);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.post('/user-type', async (req, res) => {
+  const { user_id } = req.body;
+
+  // Simulação de lógica para determinar tipo de usuário
+  try {
+    const userType = user_id % 2 === 0 ? 'motorista' : 'passageiro';
+    res.json({ userType });
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 
