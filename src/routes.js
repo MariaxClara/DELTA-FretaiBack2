@@ -1,7 +1,7 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -130,6 +130,17 @@ router.post('/addPassengerUser', async (req, res) => {
   try {
     const response  = await addPassengerUser(email, password, code);
     res.status(response.statusCode).send(response.body)
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
+});
+router.post('/addNewUser', async (req, res) => {
+  const { email, password, cpf, phone, name } = req.body;
+  
+  try {
+    const response  = await addNewUser(email, password, cpf, phone, name);
+    res.status(response.statusCode).send('Usuário cadastrado com sucesso')
   } catch (error) {
     console.log(error)
     res.status(500).send(error);

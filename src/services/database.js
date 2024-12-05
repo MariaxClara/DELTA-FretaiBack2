@@ -260,7 +260,6 @@ async function getDriverByCode(code){
   const userRes = await client.query(`SELECT user_id FROM motoristas WHERE invite_cod = $1`, [code]);
 
   if (userRes.rows.length === 0) { 
-    console.log('Código não encontrado na base')
     return -1; 
   }
 
@@ -294,4 +293,26 @@ async function getUserType(id) {
   return false
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode };
+async function addUser(email, password, cpf, phone, name) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `
+      insert into users (user_id,email,senha,cpf,telefone,nome)
+      values ( ((select COUNT(*) from users) + 1), $1, $2, $3, $4, $5)
+      `,
+      [email, password, cpf, phone, name]
+    );
+
+    if (res.rowCount === 0) return null;
+    return res
+
+  } catch (error) {
+    console.error('Erro ao criar conta:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser };
