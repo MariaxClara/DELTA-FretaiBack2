@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -181,6 +181,16 @@ async function addPassengerUser(email, password, code) {
   return { statusCode: 200, body: { message: 1 } };
 }
 
+async function addNewUser(email, password, cpf, phone, name) {
+  
+  const newUser = await addUser(email, password, cpf, phone, name);
+
+  if (!newUser) {
+    return { statusCode: 404, body: { error: 'Não foi possível criar a conta' } };
+  }
+  return { statusCode: 200, body: { newUser } };
+  
+}
 
 
 export {
