@@ -205,5 +205,6 @@ export {
     addDriverInvite,
     changePassword,
     updateUserPay,
-    addPassengerUser
+    addPassengerUser,
+    addNewUser
 }

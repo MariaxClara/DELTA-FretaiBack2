@@ -1,7 +1,7 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser } from "./controllers/databaseController.js";
 
 
 dotenv.config();
