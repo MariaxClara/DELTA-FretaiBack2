@@ -2,11 +2,15 @@ import express from "express";
 import * as dotenv from "dotenv";
 import routes from "./routes.js";
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocs from '../swagger.json' with { type: "json" };
+
 
 
 dotenv.config();
 const app = express();
 app.use(cors());
+app.use("/api-docs",swaggerUi.serve,swaggerUi.setup(swaggerDocs))
 let {PORT} = process.env;
 if(!PORT) PORT= 3000;
 
