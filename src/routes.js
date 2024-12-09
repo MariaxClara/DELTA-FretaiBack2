@@ -1,7 +1,7 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay } from "./controllers/databaseController.js";
+import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, userType } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -129,17 +129,33 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/user-type', async (req, res) => {
-  const { user_id } = req.body;
+router.get('/user-type', async (req, res) => {
+  const { user_id } = req.query; // Obtendo o user_id da query string
 
-  // Simulação de lógica para determinar tipo de usuário
+  if (!user_id) {
+    return res.status(400).json({ error: 'Parâmetro user_id é obrigatório.' });
+  }
+
   try {
-    const userType = user_id % 2 === 0 ? 'motorista' : 'passageiro';
-    res.json({ userType });
+    // Chamando a função que verifica o tipo no banco de dados
+    // console.log(user_id);
+    
+    const userTypeResult = await userType(user_id);
+
+    if (userTypeResult.body === 0) {
+      return res.json({ userType: 'motorista' });
+    } else if (userTypeResult.body === 1) {
+      return res.json({ userType: 'passageiro' });
+    } else {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
   } catch (error) {
-    res.status(500).send(error);
+    console.error('Erro ao determinar tipo de usuário AAAAAA:', error.message);
+    return res.status(500).json({ error: 'Erro ao determinar tipo de usuário.' });
   }
 });
+
+
 
 
 export default router;

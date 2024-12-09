@@ -98,8 +98,7 @@ async function tables() {
 
 async function userType(id) {
   const userType = await getUserType(id);
-
-  if (!userType) {
+  if (userType == null) {
     return { statusCode: 404, body: { error: 'Não foi possivel encontrar o usuário' } };
   }
   return { statusCode: 200, body: userType }
