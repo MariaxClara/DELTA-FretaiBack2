@@ -70,27 +70,21 @@ async function getDriverInfoByEmail(email) {
   try {
     const client = await pool.connect();
 
-    const userRes = await client.query(`SELECT user_id, email FROM users WHERE email = $1`, [email]);
+    const userRes = await client.query(`SELECT nome, email, telefone FROM users WHERE email = $1`, [email]);
 
     if (userRes.rows.length === 0) {
-      client.release();
+      client.release
       console.log("Usuário não encontrado.");
       return null;
     }
 
-    const userId = userRes.rows[0].user_id;
+    const userName = userRes.rows[0].nome;
     const userEmail = userRes.rows[0].email;
-
-    const driverRes = await client.query(`SELECT nome, telefone FROM motoristas WHERE user_id = $1`, [userId]);
+    const userPhone = userRes.rows[0].telefone;
 
     client.release();
 
-    if (driverRes.rows.length === 0) {
-      console.log("Motorista não encontrado.");
-      return null;
-    }
-
-    return { nome: driverRes.rows[0].nome, email: userEmail, telefone: driverRes.rows[0].telefone };
+    return { nome: userName, email: userEmail, telefone: userPhone };
   } catch (error) {
     console.error('Erro ao obter informações do motorista:', (error).message);
     return null;
