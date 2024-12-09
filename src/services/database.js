@@ -267,8 +267,20 @@ async function addUserEmailInvite(email, driverId) {
   }
 }
 
+async function getMessages(senderId, receiverId) {
+  const query = `
+    SELECT * FROM messages
+    WHERE (remetente_id = $1 AND destinatario_id = $2)
+    OR (remetente_id = $2 AND destinatario_id = $1)
+    ORDER BY created_at ASC`;
+    const values = [senderId, receiverId];
+    const result = await pool.query(query, values);
+    return result.rows;
+}
+
+
 async function getUserType(id) {
   return false
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType };
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, getMessages };
