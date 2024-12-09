@@ -96,17 +96,18 @@ async function getPassengerInfoByEmail(email) {
     const client = await pool.connect();
 
     const res = await client.query(`
-      SELECT 
-          p.nome AS passageiro_nome, 
-          u.email AS passageiro_email, 
-          p.telefone AS passageiro_telefone,
-          m.nome AS motorista_nome,
-          m.telefone AS motorista_telefone
-      FROM passageiros p
-      JOIN users u ON p.user_id = u.user_id
-      LEFT JOIN relacionamento_passageiro_rotas rpr ON p.passageiro_id = rpr.passageiro_id
-      LEFT JOIN rotas r ON rpr.rotas_id = r.rota_id
-      LEFT JOIN motoristas m ON r.motorista_id = m.motorista_id
+      SELECT DISTINCT ON (u2.nome)
+        u.nome AS passageiro_nome,
+        u.email AS passageiro_email,
+        u.telefone AS passageiro_telefone,
+        u2.nome AS motorista_nome, 
+        u2.telefone AS motorista_telefone
+      FROM users u 
+      JOIN passageiros p ON u.user_id = p.user_id
+      JOIN relacionamento_passageiro_rotas r ON p.passageiro_id = r.passageiro_id
+      JOIN rotas r2 ON r.rotas_id = r2.rota_id
+      JOIN motoristas m ON r2.motorista_id = m.motorista_id
+      JOIN users u2 ON m.user_id = u2.user_id
       WHERE u.email = $1
     `, [email]);
 
