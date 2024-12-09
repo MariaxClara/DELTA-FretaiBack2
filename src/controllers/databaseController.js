@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -192,6 +192,26 @@ async function addNewUser(email, password, cpf, phone, name) {
   
 }
 
+async function getRaceInfo(email) {
+  
+  if (!email) {
+    return { statusCode: 400, body: { error: 'Email é necessário' } };
+  }
+
+  const raceInfo = await getRaceInfoByEmail(email);
+
+  if (!raceInfo) {
+    return { statusCode: 404, body: { error: 'Corrida não encontrada para o passageiro' } };
+  }
+
+  return { statusCode: 200, body: { raceInfo } };
+  
+}
+
+
+
+
+
 
 export {
     driverInfo,
@@ -206,5 +226,6 @@ export {
     changePassword,
     updateUserPay,
     addPassengerUser,
-    addNewUser
+    addNewUser,
+    getRaceInfo
 }
