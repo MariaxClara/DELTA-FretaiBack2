@@ -315,4 +315,84 @@ async function addUser(email, password, cpf, phone, name) {
   }
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser };
+async function getRaceInfoByEmail(email) {
+  try {
+    const client = await pool.connect();
+    
+    console.log("Buscando informações da corrida para o email:", email);
+
+    
+    const raceRes = await client.query(`
+      SELECT 
+          p.nome AS passageiro_nome, 
+          p.passageiro_id AS passageiro_id,
+          p.user_id AS user_id,
+          u.email AS passageiro_email, 
+          p.telefone AS passageiro_telefone,
+          m.nome AS motorista_nome,
+          m.telefone AS motorista_telefone,
+          r.rota_id,                 -- Obtendo o ID da rota
+          r.destino,
+          r.horario,
+          r.dia_da_semana
+      FROM passageiros p
+      JOIN users u ON p.user_id = u.user_id
+      LEFT JOIN relacionamento_passageiro_rotas rpr ON p.passageiro_id = rpr.passageiro_id
+      LEFT JOIN rotas r ON rpr.rotas_id = r.rota_id
+      LEFT JOIN motoristas m ON r.motorista_id = m.motorista_id
+      WHERE u.email = $1
+    `, [email]);
+
+    if (raceRes.rows.length === 0) {
+      console.log("Nenhuma corrida encontrada para o passageiro com o email:", email);
+      client.release();
+      return { error: "Nenhuma corrida encontrada para o passageiro." };  
+    }
+
+    const raceInfo = raceRes.rows.map(row => ({
+      passageiro_nome: row.passageiro_nome,
+      passageiro_id: row.passageiro_id,
+      passageiro_email: row.passageiro_email,
+      passageiro_telefone: row.passageiro_telefone,
+      motorista_nome: row.motorista_nome,
+      motorista_telefone: row.motorista_telefone,
+      rota_id: row.rota_id,
+      destino: row.destino,
+      horario: row.horario,
+      dia_da_semana: row.dia_da_semana,
+      user_id: row.user_id,
+      status_corrida: null  
+    }));
+
+    for (let race of raceInfo) {
+      const statusRes = await client.query(`
+        SELECT 
+            status 
+        FROM 
+            status_viagem 
+        WHERE 
+            rota_id = $1
+        ORDER BY 
+            created_at DESC
+        LIMIT 1
+      `, [race.rota_id]);
+
+      if (statusRes.rows.length > 0) {
+        race.status_corrida = statusRes.rows[0].status;
+      } else {
+        race.status_corrida = "Status não encontrado";
+      }
+    }
+
+    client.release();
+    
+
+    return raceInfo;
+
+  } catch (error) {
+    console.error('Erro ao buscar informações da corrida:', error.message);
+    return { error: `Erro ao buscar informações da corrida: ${error.message}` };  // Retorna o erro
+  }
+}
+
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail };
