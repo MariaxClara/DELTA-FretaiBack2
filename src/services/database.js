@@ -160,7 +160,7 @@ async function getUsersByDriverID(id){
     const client = await pool.connect();
     const res = await client.query(`
       select 
-      p.nome AS passageiro_nome, 
+      u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
       ui.image_path AS passageiro_imagem,
       p.pago AS passageiro_pagamento
