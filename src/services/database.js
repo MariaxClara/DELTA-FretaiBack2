@@ -318,20 +318,20 @@ async function addUser(email, password, cpf, phone, name) {
 async function getRaceInfoByEmail(email) {
   try {
     const client = await pool.connect();
-    
+
     console.log("Buscando informações da corrida para o email:", email);
 
-    
-    const raceRes = await client.query(`
+    const raceRes = await client.query(
+      `
       SELECT 
-          p.nome AS passageiro_nome, 
+          u.nome AS passageiro_nome, 
           p.passageiro_id AS passageiro_id,
           p.user_id AS user_id,
           u.email AS passageiro_email, 
-          p.telefone AS passageiro_telefone,
-          m.nome AS motorista_nome,
-          m.telefone AS motorista_telefone,
-          r.rota_id,                 -- Obtendo o ID da rota
+          u.telefone AS passageiro_telefone,
+          um.nome AS motorista_nome,
+          um.telefone AS motorista_telefone,
+          r.rota_id,
           r.destino,
           r.horario,
           r.dia_da_semana
@@ -340,16 +340,23 @@ async function getRaceInfoByEmail(email) {
       LEFT JOIN relacionamento_passageiro_rotas rpr ON p.passageiro_id = rpr.passageiro_id
       LEFT JOIN rotas r ON rpr.rotas_id = r.rota_id
       LEFT JOIN motoristas m ON r.motorista_id = m.motorista_id
-      WHERE u.email = $1
-    `, [email]);
+      LEFT JOIN users um ON m.user_id = um.user_id
+      WHERE u.email = $1;
+      `,
+      [email]
+    );
 
+    // Nenhuma corrida encontrada
     if (raceRes.rows.length === 0) {
-      console.log("Nenhuma corrida encontrada para o passageiro com o email:", email);
+      console.log(
+        "Nenhuma corrida encontrada para o passageiro com o email:",
+        email
+      );
       client.release();
-      return { error: "Nenhuma corrida encontrada para o passageiro." };  
+      return []; // Retorna array vazio
     }
 
-    const raceInfo = raceRes.rows.map(row => ({
+    let raceInfo = raceRes.rows.map((row) => ({
       passageiro_nome: row.passageiro_nome,
       passageiro_id: row.passageiro_id,
       passageiro_email: row.passageiro_email,
@@ -361,11 +368,12 @@ async function getRaceInfoByEmail(email) {
       horario: row.horario,
       dia_da_semana: row.dia_da_semana,
       user_id: row.user_id,
-      status_corrida: null  
+      status_corrida: null,
     }));
 
     for (let race of raceInfo) {
-      const statusRes = await client.query(`
+      const statusRes = await client.query(
+        `
         SELECT 
             status 
         FROM 
@@ -375,7 +383,9 @@ async function getRaceInfoByEmail(email) {
         ORDER BY 
             created_at DESC
         LIMIT 1
-      `, [race.rota_id]);
+        `,
+        [race.rota_id]
+      );
 
       if (statusRes.rows.length > 0) {
         race.status_corrida = statusRes.rows[0].status;
@@ -384,15 +394,21 @@ async function getRaceInfoByEmail(email) {
       }
     }
 
+    raceInfo = raceInfo.filter(
+      (race) =>
+        race.status_corrida !== null && race.status_corrida !== "Status não encontrado"
+    );
+
     client.release();
-    
-
-    return raceInfo;
-
+    console.log("Informações da corrida buscadas do banco:", raceInfo);
+    return raceInfo; // Retorna sempre array
   } catch (error) {
-    console.error('Erro ao buscar informações da corrida:', error.message);
-    return { error: `Erro ao buscar informações da corrida: ${error.message}` };  // Retorna o erro
+    console.error("Erro ao buscar informações da corrida:", error.message);
+    return []; // Retorna array vazio em caso de erro
   }
 }
+
+
+
 
 export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail };

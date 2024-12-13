@@ -193,20 +193,19 @@ async function addNewUser(email, password, cpf, phone, name) {
 }
 
 async function getRaceInfo(email) {
-  
   if (!email) {
-    return { statusCode: 400, body: { error: 'Email é necessário' } };
+      return { statusCode: 400, body: { error: 'Email é necessário' } };
   }
 
   const raceInfo = await getRaceInfoByEmail(email);
 
-  if (!raceInfo) {
-    return { statusCode: 404, body: { error: 'Corrida não encontrada para o passageiro' } };
+  if (!raceInfo || raceInfo.length === 0) {
+      return { statusCode: 404, body: { error: 'Corrida não encontrada para o passageiro' } };
   }
 
   return { statusCode: 200, body: { raceInfo } };
-  
 }
+
 
 
 

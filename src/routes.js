@@ -1,7 +1,7 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -146,6 +146,23 @@ router.post('/addNewUser', async (req, res) => {
     res.status(500).send(error);
   }
 });
+
+router.get('/getRaceInfo/:email', async (req, res) => {
+  const { email } = req.params; // Obtendo o email dos parâmetros da rota
+
+  try {
+    // Chama a função principal para buscar informações da corrida
+    const response = await getRaceInfo(email);
+
+    // Retorna a resposta com o status e o body apropriados
+    res.status(response.statusCode).send(response.body);
+  } catch (error) {
+    console.error("Erro no endpoint /getRaceInfo/:email:", error.message);
+    res.status(500).send({ error: "Erro ao processar a solicitação." });
+  }
+});
+
+
 
 
 export default router;
