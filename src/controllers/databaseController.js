@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, saveMessage, getMessages } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -158,6 +158,32 @@ async function updateUserPay(email, paid) {
   return { statusCode: 200, body: { message: 'success' } };
 }
 
+async function fetchMessages(senderId, receiverId) {
+  if (!senderId || !receiverId) {
+    return { statusCode: 400, body: { error: 'Sender e receiver são necessarios' } };
+  }
+  const messages = await getMessages(senderId, receiverId);
+  return { statusCode: 200, body: messages };
+}
+
+async function storeMessage(senderId, receiverId, content) {
+  if (!senderId || !receiverId || !content) {
+    return { statusCode: 400, body: { error: 'Sender, receiver e content são necessários' } };
+  }
+
+  try {
+    const message = await saveMessage(senderId, receiverId, content);
+    return { statusCode: 201, body: message }; 
+  } catch (error) {
+    console.error('Erro ao salvar mensagem:', error);
+    return { statusCode: 500, body: { error: 'Erro ao salvar mensagem no banco de dados' } };
+  }
+}
+
+
+
+
+
 export {
     driverInfo,
     driverInvites,
@@ -169,5 +195,7 @@ export {
     userType,
     addDriverInvite,
     changePassword,
-    updateUserPay
+    updateUserPay, 
+    fetchMessages,
+    storeMessage
 }

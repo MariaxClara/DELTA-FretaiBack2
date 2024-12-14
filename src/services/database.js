@@ -267,20 +267,49 @@ async function addUserEmailInvite(email, driverId) {
   }
 }
 
+
+async function saveMessage(senderId, receiverId, content) {
+  const query = `
+    INSERT INTO mensagens (remetente_id, destinatario_id, conteudo)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `;
+  const values = [senderId, receiverId, content];
+
+  try {
+    const result = await pool.query(query, values);
+    return result.rows[0]; 
+  } catch (error) {
+    console.error('Erro no saveMessage:', error.message); 
+    throw error;
+  }
+}
+
+
+
 async function getMessages(senderId, receiverId) {
   const query = `
-    SELECT * FROM messages
+    SELECT * FROM mensagens
     WHERE (remetente_id = $1 AND destinatario_id = $2)
     OR (remetente_id = $2 AND destinatario_id = $1)
-    ORDER BY created_at ASC`;
-    const values = [senderId, receiverId];
+    ORDER BY created_at ASC;
+  `;
+  const values = [senderId, receiverId];
+
+  try {
     const result = await pool.query(query, values);
-    return result.rows;
+    return result.rows; 
+  } catch (error) {
+    console.error('Erro no getMessages:', error.message); 
+    throw error;
+  }
 }
+
+
 
 
 async function getUserType(id) {
   return false
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, getMessages };
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, getMessages, saveMessage };

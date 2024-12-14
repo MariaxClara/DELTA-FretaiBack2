@@ -4,6 +4,7 @@ import routes from "./routes.js";
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
+import { saveMessage } from './services/database.js';
 
 
 dotenv.config();
@@ -25,15 +26,20 @@ app.use(express.json());
 app.use(routes);
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log('Usuário conectado:', socket.id);
 
-  socket.on('chat message', (msg) => {
-    console.log('message: ' + msg);
-    io.emit('chat message', msg);
+  socket.on('sendMessage', async ({ senderId, receiverId, content }) => {
+    try {
+      const savedMessage = await saveMessage(senderId, receiverId, content);
+
+      io.emit(`receiveMessage-${receiverId}`, savedMessage);
+    } catch (error) {
+      console.error('Erro ao salvar mensagem:', error);
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    console.log('Usuário desconectado:', socket.id);
   });
 });
 

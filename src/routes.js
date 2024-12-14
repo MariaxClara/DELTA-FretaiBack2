@@ -1,7 +1,7 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay } from "./controllers/databaseController.js";
+import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, fetchMessages, storeMessage } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -83,6 +83,20 @@ router.get("/tables", async (req, res) => {
 })
 
 
+router.get('/chat/:senderId/:receiverId', async (req, res) => {
+  const { senderId, receiverId } = req.params;
+
+  try {
+    const response = await fetchMessages(senderId, receiverId);
+    res.status(response.statusCode).json(response.body);
+  } catch (error) {
+    console.error('Erro ao buscar mensagens:', error.message);
+    res.status(500).json({ error: 'Erro ao buscar mensagens' });
+  }
+});
+
+
+
 router.post("/", (req, res) => {
     res.sendStatus(200);
 });
@@ -125,5 +139,11 @@ router.post('/sendEmail', async (req, res) => {
   }
 });
 
+router.post('/chat', async (req, res) => {
+  const { senderId, receiverId, content } = req.body;
+  const response = await storeMessage(senderId, receiverId, content);
+
+  res.status(response.statusCode).json(response.body);
+});
 
 export default router;
