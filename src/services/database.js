@@ -377,7 +377,7 @@ async function getRaceInfoByEmail(email) {
         SELECT 
             status 
         FROM 
-            status_viagem 
+            log_passageiro_rotas
         WHERE 
             rota_id = $1
         ORDER BY 
@@ -394,9 +394,9 @@ async function getRaceInfoByEmail(email) {
       }
     }
 
+    // Filtra as corridas com status -1 (Canceladas)
     raceInfo = raceInfo.filter(
-      (race) =>
-        race.status_corrida !== null && race.status_corrida !== "Status não encontrado"
+      (race) => race.status_corrida !== -1 && race.status_corrida !== "Status não encontrado"
     );
 
     client.release();
@@ -409,6 +409,28 @@ async function getRaceInfoByEmail(email) {
 }
 
 
+function changeRaceStatus(rota_id, passageiro_id ,status) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const client = await pool.connect();
+
+      // Insere o novo status na tabela status_viagem
+      const query = `
+        INSERT INTO log_passageiro_rotas (rota_id, passageiro_id, status) 
+        VALUES ($1,$2,$3)
+      `;
+      await client.query(query, [rota_id,passageiro_id,status]);
+
+      client.release();
+      resolve("Status da corrida atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar o status da corrida database:", error.message);
+      reject(`Erro ao atualizar o status da corrida database: ${error.message}`);
+    }
+  });
+}
 
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail };
+
+
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus };

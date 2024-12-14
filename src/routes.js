@@ -1,7 +1,7 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -158,6 +158,26 @@ router.get('/getRaceInfo/:email', async (req, res) => {
     res.status(response.statusCode).send(response.body);
   } catch (error) {
     console.error("Erro no endpoint /getRaceInfo/:email:", error.message);
+    res.status(500).send({ error: "Erro ao processar a solicitação." });
+  }
+});
+
+router.get('/changeRacePassengerStatus/:rota_id/:passageiro_id/:status_corrida', async (req, res) => {
+  const { rota_id, passageiro_id, status_corrida } = req.params; // Obtendo os parâmetros da rota
+
+  // Validação dos parâmetros
+  if (!rota_id || !passageiro_id || !status_corrida) {
+    return res.status(400).send({ error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id' e 'status_corrida'." });
+  }
+
+  try {
+    // Chama a função principal para verificar e alterar o status da corrida
+    const response = await changeRacePassengerStatus(rota_id, passageiro_id, status_corrida);
+
+    // Retorna a resposta com o status e o body apropriados
+    res.status(response.statusCode).send(response.body);
+  } catch (error) {
+    console.error("Erro no endpoint /checkRaceStatus/:rota_id/:passageiro_id/:status_corrida:", error.message);
     res.status(500).send({ error: "Erro ao processar a solicitação." });
   }
 });
