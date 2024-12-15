@@ -1,0 +1,1077 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "DELTA-FretaiBack",
+    "version": "1.0.0",
+    "description": "BackEnd Service From FRETAI"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/driverInfo/{email}": {
+      "get": {
+        "summary": "Obtém as informações de um motorista",
+        "description": "Este endpoint retorna as informações de um motorista a partir do email fornecido.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "Email do motorista para buscar suas informações.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "motorista1@example.com"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Informações do motorista retornadas com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nome": {
+                      "type": "string",
+                      "description": "Nome do motorista."
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "Email do motorista."
+                    },
+                    "telefone": {
+                      "type": "string",
+                      "description": "Telefone do motorista."
+                    }
+                  }
+                },
+                "example": {
+                  "nome": "João Silva",
+                  "email": "joao.silva@dominio.com",
+                  "telefone": "11987654321"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email não fornecido ou inválido.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email é necessário"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Motorista não encontrado.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Motorista não encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao processar a solicitação"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/driverUsers/{id}": {
+      "get": {
+        "summary": "Obtém os passageiros associados a um motorista",
+        "description": "Este endpoint retorna os dados dos passageiros que estão associados ao motorista com o ID fornecido.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do motorista para buscar os passageiros associados.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de passageiros associados ao motorista.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "passageiro_nome": {
+                        "type": "string",
+                        "description": "Nome do passageiro."
+                      },
+                      "passageiro_email": {
+                        "type": "string",
+                        "description": "Email do passageiro."
+                      },
+                      "passageiro_imagem": {
+                        "type": "string",
+                        "description": "Caminho da imagem do passageiro."
+                      },
+                      "passageiro_pagamento": {
+                        "type": "boolean",
+                        "description": "Status do pagamento do passageiro."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID do motorista não fornecido ou inválido."
+          },
+          "404": {
+            "description": "Nenhum passageiro encontrado para o motorista fornecido."
+          },
+          "500": {
+            "description": "Erro interno no servidor."
+          }
+        }
+      }
+    },
+    "/driverInvites/{id}": {
+      "get": {
+        "summary": "Obtém os emails dos passageiros convidados de um motorista",
+        "description": "Este endpoint retorna uma lista de emails dos passageiros convidados associados ao motorista com o ID fornecido.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do motorista para buscar os passageiros convidados.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de emails dos passageiros convidados retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Email de um passageiro convidado."
+                  }
+                },
+                "example": [
+                  "convidado1@dominio.com",
+                  "convidado2@dominio.com"
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "ID do motorista não fornecido ou inválido.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Id é necessário"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nenhum passageiro convidado encontrado para o motorista fornecido.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Passageiros convidados do motorista não encontrados"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao processar a solicitação"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/imagePath/{email}": {
+      "get": {
+        "summary": "Obtém o caminho da imagem de um usuário",
+        "description": "Este endpoint retorna o caminho da imagem associada ao email do usuário fornecido.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "Email do usuário para buscar o caminho da imagem.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "motorista1@example.com"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Caminho da imagem retornado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "imagePath": {
+                      "type": "string",
+                      "description": "Caminho da imagem do usuário."
+                    }
+                  }
+                },
+                "example": {
+                  "imagePath": "/images/usuario.jpg"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email não fornecido ou inválido.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email é necessário"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Imagem não encontrada para o usuário especificado.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Imagem não encontrada"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao processar a solicitação"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login/{email}/{password}": {
+      "get": {
+        "summary": "Realiza o login do usuário",
+        "description": "Este endpoint autentica um usuário com base em seu email e senha.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "Email do usuário para autenticação.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "motorista1@example.com"
+            }
+          },
+          {
+            "name": "password",
+            "in": "path",
+            "description": "Senha do usuário para autenticação.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "senha123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Status da operação.",
+                      "example": "success"
+                    },
+                    "user": {
+                      "type": "object",
+                      "description": "Dados do usuário autenticado.",
+                      "properties": {
+                        "user_id": {
+                          "type": "integer",
+                          "description": "ID único do usuário."
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "Email do usuário."
+                        },
+                        "primeiro_login": {
+                          "type": "boolean",
+                          "description": "Indica se é o primeiro login do usuário."
+                        }
+                      },
+                      "example": {
+                        "user_id": 1,
+                        "email": "motorista1@example.com",
+                        "primeiro_login": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Credenciais inválidas"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao processar a solicitação"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/passengerInfo/{email}": {
+      "get": {
+        "summary": "Obtém informações do passageiro",
+        "description": "Este endpoint retorna informações detalhadas sobre o passageiro com base no email fornecido.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "Email do passageiro para buscar as informações.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "passageiro1@example.com"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Informações do passageiro retornadas com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "passageiro_nome": {
+                        "type": "string",
+                        "description": "Nome do passageiro."
+                      },
+                      "passageiro_email": {
+                        "type": "string",
+                        "description": "Email do passageiro."
+                      },
+                      "passageiro_telefone": {
+                        "type": "string",
+                        "description": "Telefone do passageiro."
+                      },
+                      "motorista_nome": {
+                        "type": "string",
+                        "description": "Nome do motorista associado à rota do passageiro."
+                      },
+                      "motorista_telefone": {
+                        "type": "string",
+                        "description": "Telefone do motorista associado à rota do passageiro."
+                      }
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "passageiro_nome": "João Silva",
+                    "passageiro_email": "joao@dominio.com",
+                    "passageiro_telefone": "123456789",
+                    "motorista_nome": "Carlos Santos",
+                    "motorista_telefone": "987654321"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Email não fornecido ou inválido.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email é necessário"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Passageiro não encontrado para o email especificado.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Passageiro não encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao processar a solicitação"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tables": {
+      "get": {
+        "summary": "Obtém todas as tabelas do banco de dados",
+        "description": "Este endpoint retorna uma lista com os nomes de todas as tabelas disponíveis no esquema público do banco de dados.",
+        "responses": {
+          "200": {
+            "description": "Lista de tabelas recuperada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "table_name": {
+                        "type": "string",
+                        "description": "Nome da tabela."
+                      }
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "table_name": "users"
+                  },
+                  {
+                    "table_name": "motoristas"
+                  },
+                  {
+                    "table_name": "passageiros"
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao obter tabelas"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/userType/{id}": {
+      "get": {
+        "summary": "Obtém o tipo de usuário pelo ID",
+        "description": "Este endpoint retorna o tipo de usuário com base no ID fornecido.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do usuário para buscar o tipo.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de usuário recuperado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Tipo de usuário (exemplo: 'motorista', 'passageiro')."
+                    }
+                  }
+                },
+                "example": {
+                  "type": "motorista"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Não foi possivel encontrar o usuário"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao obter o tipo de usuário"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addUserEmailInvite": {
+      "post": {
+        "summary": "Adiciona um convite de usuário para um motorista",
+        "description": "Este endpoint permite que um motorista envie um convite para um email específico.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email do usuário a ser convidado.",
+                    "example": "example@example.com"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "description": "ID do motorista que está enviando o convite.",
+                    "example": 1
+                  }
+                },
+                "required": ["email", "id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Convite enviado com sucesso.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisição inválida devido à ausência de parâmetros obrigatórios.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email é necessário"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Não foi possível atualizar os convites enviados.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Não foi possivel atualizar os convites enviados"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro ao adicionar cliente convidado"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addDriverInvite": {
+      "post": {
+        "summary": "Adiciona um convite de motorista",
+        "description": "Este endpoint permite adicionar um convite para um usuário específico associado ao motorista fornecido.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email do usuário que está sendo convidado.",
+                    "example": "example@example.com"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "description": "ID do motorista que está enviando o convite.",
+                    "example": 1
+                  }
+                },
+                "required": ["email", "id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Convite enviado com sucesso.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisição inválida devido à ausência de parâmetros obrigatórios.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missingEmail": {
+                    "summary": "Email não fornecido",
+                    "value": {
+                      "error": "Email é necessário"
+                    }
+                  },
+                  "missingId": {
+                    "summary": "ID do motorista não fornecido",
+                    "value": {
+                      "error": "Id do motorista é necessário"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Falha ao atualizar os convites enviados.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Não foi possivel atualizar os convites enviados"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro interno no servidor"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/changePassword": {
+      "post": {
+        "summary": "Altera a senha de um usuário",
+        "description": "Este endpoint permite alterar a senha de um usuário especificado pelo email.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email do usuário.",
+                    "example": "example@example.com"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "description": "Nova senha para o usuário.",
+                    "example": "novaSenha123"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "description": "Confirmação da nova senha.",
+                    "example": "novaSenha123"
+                  }
+                },
+                "required": ["email", "newPassword", "confirmPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Senha alterada com sucesso ou mensagens de validação.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "success": {
+                    "summary": "Senha alterada com sucesso",
+                    "value": {
+                      "status": "success",
+                      "message": "Senha atualizada com sucesso"
+                    }
+                  },
+                  "passwordMismatch": {
+                    "summary": "Senhas não coincidem",
+                    "value": {
+                      "status": "error",
+                      "message": "As senhas não coincidem"
+                    }
+                  },
+                  "userNotFound": {
+                    "summary": "Usuário não encontrado",
+                    "value": {
+                      "status": "error",
+                      "message": "Usuário não encontrado ou erro ao atualizar senha"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro interno no servidor"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updateUserPay": {
+      "post": {
+        "summary": "Atualiza o status de pagamento do passageiro",
+        "description": "Este endpoint permite atualizar a confirmação de pagamento de um passageiro com base no email fornecido.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email do passageiro.",
+                    "example": "example@example.com"
+                  },
+                  "paid": {
+                    "type": "boolean",
+                    "description": "Status de pagamento (true para pago, false para não pago).",
+                    "example": true
+                  }
+                },
+                "required": ["email", "paid"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pagamento atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "body": {
+                    "message": "success"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros inválidos ou ausentes.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missingEmail": {
+                    "summary": "Email ausente",
+                    "value": {
+                      "statusCode": 400,
+                      "body": {
+                        "error": "Email é necessário"
+                      }
+                    }
+                  },
+                  "missingPaid": {
+                    "summary": "Confirmação de pagamento ausente",
+                    "value": {
+                      "statusCode": 400,
+                      "body": {
+                        "error": "Confirmação de pagamento é necessário"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Passageiro não encontrado.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 404,
+                  "body": {
+                    "error": "Motorista não encontrado"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro interno no servidor"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addPassengerUser": {
+      "post": {
+        "summary": "Adiciona um passageiro à van de um motorista",
+        "description": "Adiciona um passageiro à van de um motorista com base no código de convite, email e senha fornecidos.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email do passageiro.",
+                    "example": "example@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Senha do passageiro.",
+                    "example": "mypassword123"
+                  },
+                  "code": {
+                    "type": "string",
+                    "description": "Código de convite do motorista.",
+                    "example": "ABC123"
+                  }
+                },
+                "required": ["email", "password", "code"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Passageiro adicionado com sucesso.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Código de convite inválido.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": -1
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": -2
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Erro ao adicionar passageiro à van do motorista.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Não foi possível adicionar o passageiro na van do motorista"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro interno no servidor"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addNewUser": {
+      "post": {
+        "summary": "Cadastra um novo usuário no sistema",
+        "description": "Este endpoint permite o cadastro de um novo usuário, fornecendo email, senha, CPF, telefone e nome.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email do novo usuário.",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Senha do novo usuário.",
+                    "example": "password123"
+                  },
+                  "cpf": {
+                    "type": "string",
+                    "description": "CPF do novo usuário.",
+                    "example": "12345678901"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "description": "Telefone do novo usuário.",
+                    "example": "999999999"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Nome completo do novo usuário.",
+                    "example": "João Silva"
+                  }
+                },
+                "required": ["email", "password", "cpf", "phone", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário cadastrado com sucesso.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Usuário cadastrado com sucesso"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na criação do usuário, possivelmente devido a dados inválidos.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Não foi possível criar a conta"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no servidor.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Erro interno no servidor"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+ 
+
+
+
+ 
+
