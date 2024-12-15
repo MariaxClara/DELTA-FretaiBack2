@@ -290,9 +290,44 @@ async function addPassenger(passageiro_user_id, motorista_id) {
 }
 
 async function getUserType(id) {
-  return false
-}
+  console.log('id no back',id);
+  const client = await pool.connect();
+  try {
+    // Verificar se o usuário é um motorista
+    const motoristaRes = await client.query(
+      `
+      SELECT user_id FROM motoristas
+      WHERE user_id = $1
+      `,
+      [id]
+    );
 
+    if (motoristaRes.rowCount > 0) {
+      return 0; // Retorna 0 para motorista
+    }
+
+    // Caso não tenha encontrado em motoristas, verifica em passageiros
+    const passageiroRes = await client.query(
+      `
+      SELECT user_id FROM passageiros
+      WHERE user_id = $1
+      `,
+      [id]
+    );
+
+    if (passageiroRes.rowCount > 0) {
+      return 1; // Retorna 1 para passageiro
+    }
+
+    // Caso não encontre em nenhuma tabela
+    return null;
+  } catch (error) {
+    console.error('Erro ao procurar o usuário:', error.message);
+    throw new Error('Erro na consulta ao banco de dados.');
+  } finally {
+    client.release(); // Garante que o cliente será liberado após a execução
+  }
+}
 async function addUser(email, password, cpf, phone, name) {
   const client = await pool.connect();
   try {
@@ -429,8 +464,4 @@ function changeRaceStatus(rota_id, passageiro_id ,status) {
     }
   });
 }
-
-
-
-
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus };
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus }

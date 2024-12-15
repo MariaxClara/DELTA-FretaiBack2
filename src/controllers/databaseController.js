@@ -98,8 +98,7 @@ async function tables() {
 
 async function userType(id) {
   const userType = await getUserType(id);
-
-  if (!userType) {
+  if (userType == null) {
     return { statusCode: 404, body: { error: 'Não foi possivel encontrar o usuário' } };
   }
   return { statusCode: 200, body: userType }
@@ -155,8 +154,8 @@ async function updateUserPay(email, paid) {
   if (!res) {
     return { statusCode: 404, body: { error: 'Motorista não encontrado' } };
   }
-  return { statusCode: 200, body: { message: 'success' } };
-}
+  return { statusCode: 200, body: { message: 'success' } }
+  }
 
 async function addPassengerUser(email, password, code) {
   const motorista_id = await getDriverByCode(code)
@@ -231,11 +230,6 @@ async function changeRacePassengerStatus(rota_id, passageiro_id, status_corrida)
       };
   }
 }
-
-
-
-
-
 
 export {
     driverInfo,
