@@ -1,7 +1,8 @@
 import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
-import { addDriverInvite, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, fetchMessages, storeMessage } from "./controllers/databaseController.js";
+
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -55,15 +56,9 @@ router.get("/imagePath/:email", async (req, res) => {
       res.status(500).send(error);
     }
 })
-router.get("/login/:email/:password", async (req, res) => {
-  const { email, password } =  req.params;
-  try{
-    const response = await login(email, password);
-    res.json(response);
-  } catch (error){
-    res.status(500).send(error);
-  }
-})
+
+
+
 router.get("/passengerInfo/:email", async (req, res) => {
   const { email } =  req.params;
   try{
@@ -138,6 +133,103 @@ router.post('/sendEmail', async (req, res) => {
     res.status(500).send('Não foi possível enviar o convite: ',error);
   }
 });
+router.post('/addPassengerUser', async (req, res) => {
+  const { email, password, code} = req.body;
+  
+  try {
+    const response  = await addPassengerUser(email, password, code);
+    res.status(response.statusCode).send(response.body)
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
+});
+router.post('/addNewUser', async (req, res) => {
+  const { email, password, cpf, phone, name } = req.body;
+  
+  try {
+    const response  = await addNewUser(email, password, cpf, phone, name);
+    res.status(response.statusCode).send('Usuário cadastrado com sucesso')
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
+});
+
+router.get('/getRaceInfo/:email', async (req, res) => {
+  const { email } = req.params; // Obtendo o email dos parâmetros da rota
+
+  try {
+    // Chama a função principal para buscar informações da corrida
+    const response = await getRaceInfo(email);
+
+    // Retorna a resposta com o status e o body apropriados
+    res.status(response.statusCode).send(response.body);
+  } catch (error) {
+    console.error("Erro no endpoint /getRaceInfo/:email:", error.message);
+    res.status(500).send({ error: "Erro ao processar a solicitação." });
+  }
+});
+
+router.get('/changeRacePassengerStatus/:rota_id/:passageiro_id/:status_corrida', async (req, res) => {
+  const { rota_id, passageiro_id, status_corrida } = req.params; // Obtendo os parâmetros da rota
+
+  // Validação dos parâmetros
+  if (!rota_id || !passageiro_id || !status_corrida) {
+    return res.status(400).send({ error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id' e 'status_corrida'." });
+  }
+
+  try {
+    // Chama a função principal para verificar e alterar o status da corrida
+    const response = await changeRacePassengerStatus(rota_id, passageiro_id, status_corrida);
+
+    // Retorna a resposta com o status e o body apropriados
+    res.status(response.statusCode).send(response.body);
+  } catch (error) {
+    console.error("Erro no endpoint /checkRaceStatus/:rota_id/:passageiro_id/:status_corrida:", error.message);
+    res.status(500).send({ error: "Erro ao processar a solicitação." });
+  }
+});
+
+
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const response = await login(email, password);
+    res.json(response);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.get('/user-type', async (req, res) => {
+  const { user_id } = req.query; // Obtendo o user_id da query string
+
+  if (!user_id) {
+    return res.status(400).json({ error: 'Parâmetro user_id é obrigatório.' });
+  }
+
+  try {
+    // Chamando a função que verifica o tipo no banco de dados
+    // console.log(user_id);
+    
+    const userTypeResult = await userType(user_id);
+
+    if (userTypeResult.body === 0) {
+      return res.json({ userType: 'motorista' });
+    } else if (userTypeResult.body === 1) {
+      return res.json({ userType: 'passageiro' });
+    } else {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+  } catch (error) {
+    console.error('Erro ao determinar tipo de usuário AAAAAA:', error.message);
+    return res.status(500).json({ error: 'Erro ao determinar tipo de usuário.' });
+  }
+});
+
+
 
 router.post('/chat', async (req, res) => {
   const { senderId, receiverId, content } = req.body;

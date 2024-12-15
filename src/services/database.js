@@ -4,8 +4,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 const { Pool } = pkg;
 
-
-const {BDUSER, BDHOST, BDPASSWORD, BDDATABASE, BDPORT} = process.env || 3000;
+const {BDUSER, BDHOST, BDPASSWORD, BDDATABASE, BDPORT} = process.env;
 
 const pool = new Pool({
   user: BDUSER,
@@ -70,27 +69,17 @@ async function getDriverInfoByEmail(email) {
   try {
     const client = await pool.connect();
 
-    const userRes = await client.query(`SELECT user_id, email FROM users WHERE email = $1`, [email]);
+    const userRes = await client.query(`SELECT user_id, email, nome, telefone FROM users WHERE email = $1`, [email]);
 
     if (userRes.rows.length === 0) {
       client.release();
-      console.log("Usuário não encontrado.");
-      return null;
-    }
-
-    const userId = userRes.rows[0].user_id;
-    const userEmail = userRes.rows[0].email;
-
-    const driverRes = await client.query(`SELECT nome, telefone FROM motoristas WHERE user_id = $1`, [userId]);
-
-    client.release();
-
-    if (driverRes.rows.length === 0) {
       console.log("Motorista não encontrado.");
       return null;
     }
 
-    return { nome: driverRes.rows[0].nome, email: userEmail, telefone: driverRes.rows[0].telefone };
+    client.release();
+
+    return { nome: userRes.rows[0].nome, email: userRes.rows[0].email, telefone: userRes.rows[0].telefone };
   } catch (error) {
     console.error('Erro ao obter informações do motorista:', (error).message);
     return null;
@@ -165,7 +154,7 @@ async function getUsersByDriverID(id){
     const client = await pool.connect();
     const res = await client.query(`
       select 
-      p.nome AS passageiro_nome, 
+      u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
       ui.image_path AS passageiro_imagem,
       p.pago AS passageiro_pagamento
@@ -232,10 +221,8 @@ async function updatePay(email, paid) {
       `,
       [paid, email]
     );
-
     if (res.rowCount === 0) return null;
-    return res.rows[0];
-
+    return res
   } catch (error) {
     console.error('Erro ao atualizar a confirmação de pagamento:', (error).message);
     return null;
@@ -266,7 +253,6 @@ async function addUserEmailInvite(email, driverId) {
     client.release();
   }
 }
-
 
 async function saveMessage(senderId, receiverId, content) {
   const query = `
@@ -305,11 +291,213 @@ async function getMessages(senderId, receiverId) {
   }
 }
 
+async function getDriverByCode(code){
+  const client = await pool.connect();
 
+  const userRes = await client.query(`SELECT user_id FROM motoristas WHERE invite_cod = $1`, [code]);
 
+  if (userRes.rows.length === 0) { 
+    return -1; 
+  }
 
-async function getUserType(id) {
-  return false
+  return userRes.rows[0].user_id
+
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, getMessages, saveMessage };
+async function addPassenger(passageiro_user_id, motorista_id) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `
+      insert into passageiros (passageiro_id, user_id, motorista_id)
+      values ( ((select COUNT(*) from passageiros) + 1), $1, $2)
+      `,
+      [passageiro_user_id, motorista_id]
+    );
+
+    if (res.rowCount === 0) return null;
+    return res
+
+  } catch (error) {
+    console.error('Erro ao adicionar passageiro na van do motorista:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+async function getUserType(id) {
+  console.log('id no back',id);
+  const client = await pool.connect();
+  try {
+    // Verificar se o usuário é um motorista
+    const motoristaRes = await client.query(
+      `
+      SELECT user_id FROM motoristas
+      WHERE user_id = $1
+      `,
+      [id]
+    );
+
+    if (motoristaRes.rowCount > 0) {
+      return 0; // Retorna 0 para motorista
+    }
+
+    // Caso não tenha encontrado em motoristas, verifica em passageiros
+    const passageiroRes = await client.query(
+      `
+      SELECT user_id FROM passageiros
+      WHERE user_id = $1
+      `,
+      [id]
+    );
+
+    if (passageiroRes.rowCount > 0) {
+      return 1; // Retorna 1 para passageiro
+    }
+
+    // Caso não encontre em nenhuma tabela
+    return null;
+  } catch (error) {
+    console.error('Erro ao procurar o usuário:', error.message);
+    throw new Error('Erro na consulta ao banco de dados.');
+  } finally {
+    client.release(); // Garante que o cliente será liberado após a execução
+  }
+}
+async function addUser(email, password, cpf, phone, name) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `
+      insert into users (user_id,email,senha,cpf,telefone,nome)
+      values ( ((select COUNT(*) from users) + 1), $1, $2, $3, $4, $5)
+      `,
+      [email, password, cpf, phone, name]
+    );
+
+    if (res.rowCount === 0) return null;
+    return res
+
+  } catch (error) {
+    console.error('Erro ao criar conta:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+async function getRaceInfoByEmail(email) {
+  try {
+    const client = await pool.connect();
+
+    console.log("Buscando informações da corrida para o email:", email);
+
+    const raceRes = await client.query(
+      `
+      SELECT 
+          u.nome AS passageiro_nome, 
+          p.passageiro_id AS passageiro_id,
+          p.user_id AS user_id,
+          u.email AS passageiro_email, 
+          u.telefone AS passageiro_telefone,
+          um.nome AS motorista_nome,
+          um.telefone AS motorista_telefone,
+          r.rota_id,
+          r.destino,
+          r.horario,
+          r.dia_da_semana
+      FROM passageiros p
+      JOIN users u ON p.user_id = u.user_id
+      LEFT JOIN relacionamento_passageiro_rotas rpr ON p.passageiro_id = rpr.passageiro_id
+      LEFT JOIN rotas r ON rpr.rotas_id = r.rota_id
+      LEFT JOIN motoristas m ON r.motorista_id = m.motorista_id
+      LEFT JOIN users um ON m.user_id = um.user_id
+      WHERE u.email = $1;
+      `,
+      [email]
+    );
+
+    // Nenhuma corrida encontrada
+    if (raceRes.rows.length === 0) {
+      console.log(
+        "Nenhuma corrida encontrada para o passageiro com o email:",
+        email
+      );
+      client.release();
+      return []; // Retorna array vazio
+    }
+
+    let raceInfo = raceRes.rows.map((row) => ({
+      passageiro_nome: row.passageiro_nome,
+      passageiro_id: row.passageiro_id,
+      passageiro_email: row.passageiro_email,
+      passageiro_telefone: row.passageiro_telefone,
+      motorista_nome: row.motorista_nome,
+      motorista_telefone: row.motorista_telefone,
+      rota_id: row.rota_id,
+      destino: row.destino,
+      horario: row.horario,
+      dia_da_semana: row.dia_da_semana,
+      user_id: row.user_id,
+      status_corrida: null,
+    }));
+
+    for (let race of raceInfo) {
+      const statusRes = await client.query(
+        `
+        SELECT 
+            status 
+        FROM 
+            log_passageiro_rotas
+        WHERE 
+            rota_id = $1
+        ORDER BY 
+            created_at DESC
+        LIMIT 1
+        `,
+        [race.rota_id]
+      );
+
+      if (statusRes.rows.length > 0) {
+        race.status_corrida = statusRes.rows[0].status;
+      } else {
+        race.status_corrida = "Status não encontrado";
+      }
+    }
+
+    // Filtra as corridas com status -1 (Canceladas)
+    raceInfo = raceInfo.filter(
+      (race) => race.status_corrida !== -1 && race.status_corrida !== "Status não encontrado"
+    );
+
+    client.release();
+    console.log("Informações da corrida buscadas do banco:", raceInfo);
+    return raceInfo; // Retorna sempre array
+  } catch (error) {
+    console.error("Erro ao buscar informações da corrida:", error.message);
+    return []; // Retorna array vazio em caso de erro
+  }
+}
+
+function changeRaceStatus(rota_id, passageiro_id ,status) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const client = await pool.connect();
+
+      // Insere o novo status na tabela status_viagem
+      const query = `
+        INSERT INTO log_passageiro_rotas (rota_id, passageiro_id, status) 
+        VALUES ($1,$2,$3)
+      `;
+      await client.query(query, [rota_id,passageiro_id,status]);
+
+      client.release();
+      resolve("Status da corrida atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar o status da corrida database:", error.message);
+      reject(`Erro ao atualizar o status da corrida database: ${error.message}`);
+    }
+  });
+}
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage }

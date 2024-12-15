@@ -2,9 +2,14 @@ import express from "express";
 import * as dotenv from "dotenv";
 import routes from "./routes.js";
 import cors from 'cors';
+
 import http from 'http';
 import { Server } from 'socket.io';
 import { saveMessage } from './services/database.js';
+
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocs from '../swagger.json' with { type: "json" };
+
 
 
 dotenv.config();
@@ -13,7 +18,10 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(cors());
-const {PORT} = process.env || 3000;
+
+app.use("/api-docs",swaggerUi.serve,swaggerUi.setup(swaggerDocs))
+let {PORT} = process.env;
+if(!PORT) PORT= 3000;
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled Rejection at: ", reason.stack ?? reason);

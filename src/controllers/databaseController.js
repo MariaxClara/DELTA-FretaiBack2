@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, saveMessage, getMessages } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessages } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -98,8 +98,7 @@ async function tables() {
 
 async function userType(id) {
   const userType = await getUserType(id);
-
-  if (!userType) {
+  if (userType == null) {
     return { statusCode: 404, body: { error: 'Não foi possivel encontrar o usuário' } };
   }
   return { statusCode: 200, body: userType }
@@ -155,7 +154,81 @@ async function updateUserPay(email, paid) {
   if (!res) {
     return { statusCode: 404, body: { error: 'Motorista não encontrado' } };
   }
-  return { statusCode: 200, body: { message: 'success' } };
+  return { statusCode: 200, body: { message: 'success' } }
+  }
+
+async function addPassengerUser(email, password, code) {
+  const motorista_id = await getDriverByCode(code)
+  if(motorista_id==-1) {
+    console.log('Código não encontrado')
+    return { statusCode: 400, body: { message: -1 } };
+  }
+
+  const passenger_info = await loginUser(email, password)
+  console.log(passenger_info)
+   if(passenger_info==null) {
+    console.log('Login ou senha incorretos')
+    return { statusCode: 401, body: { message: -2 } };
+  }
+  const passenger_id = (passenger_info.user).user_id
+
+  const res = await addPassenger(passenger_id, motorista_id)
+
+  if (!res) {
+    return { statusCode: 404, body: { error: 'Não foi possível adicionar o passageiro na van do motorista' } };
+  }
+  return { statusCode: 200, body: { message: 1 } };
+}
+
+async function addNewUser(email, password, cpf, phone, name) {
+  
+  const newUser = await addUser(email, password, cpf, phone, name);
+
+  if (!newUser) {
+    return { statusCode: 404, body: { error: 'Não foi possível criar a conta' } };
+  }
+  return { statusCode: 200, body: { newUser } };
+  
+}
+
+async function getRaceInfo(email) {
+  if (!email) {
+      return { statusCode: 400, body: { error: 'Email é necessário' } };
+  }
+
+  const raceInfo = await getRaceInfoByEmail(email);
+
+  if (!raceInfo || raceInfo.length === 0) {
+      return { statusCode: 404, body: { error: 'Corrida não encontrada para o passageiro' } };
+  }
+
+  return { statusCode: 200, body: { raceInfo } };
+}
+
+async function changeRacePassengerStatus(rota_id, passageiro_id, status_corrida) {
+  // Validar os dados recebidos
+  if (!rota_id || !passageiro_id || status_corrida === undefined) {
+      return {
+          statusCode: 400,
+          body: { error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id' e 'status_corrida'." }
+      };
+  }
+
+  try {
+      // Chamar a função para alterar o status no banco de dados
+      const result = await changeRaceStatus(rota_id, passageiro_id, status_corrida);
+
+      // Retornar a mensagem de sucesso
+      return { statusCode: 200, body: { message: result } };
+  } catch (error) {
+      console.error("Erro ao atualizar o status da corrida:", error.message);
+
+      // Retornar mensagem de erro
+      return {
+          statusCode: 500,
+          body: { error: "Erro interno ao processar a solicitação." }
+      };
+  }
 }
 
 async function fetchMessages(senderId, receiverId) {
@@ -195,7 +268,11 @@ export {
     userType,
     addDriverInvite,
     changePassword,
-    updateUserPay, 
     fetchMessages,
     storeMessage
+    updateUserPay,
+    addPassengerUser,
+    addNewUser,
+    getRaceInfo,
+    changeRacePassengerStatus
 }
