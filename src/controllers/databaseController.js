@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -193,19 +193,43 @@ async function addNewUser(email, password, cpf, phone, name) {
 }
 
 async function getRaceInfo(email) {
-  
   if (!email) {
-    return { statusCode: 400, body: { error: 'Email é necessário' } };
+      return { statusCode: 400, body: { error: 'Email é necessário' } };
   }
 
   const raceInfo = await getRaceInfoByEmail(email);
 
-  if (!raceInfo) {
-    return { statusCode: 404, body: { error: 'Corrida não encontrada para o passageiro' } };
+  if (!raceInfo || raceInfo.length === 0) {
+      return { statusCode: 404, body: { error: 'Corrida não encontrada para o passageiro' } };
   }
 
   return { statusCode: 200, body: { raceInfo } };
-  
+}
+
+async function changeRacePassengerStatus(rota_id, passageiro_id, status_corrida) {
+  // Validar os dados recebidos
+  if (!rota_id || !passageiro_id || status_corrida === undefined) {
+      return {
+          statusCode: 400,
+          body: { error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id' e 'status_corrida'." }
+      };
+  }
+
+  try {
+      // Chamar a função para alterar o status no banco de dados
+      const result = await changeRaceStatus(rota_id, passageiro_id, status_corrida);
+
+      // Retornar a mensagem de sucesso
+      return { statusCode: 200, body: { message: result } };
+  } catch (error) {
+      console.error("Erro ao atualizar o status da corrida:", error.message);
+
+      // Retornar mensagem de erro
+      return {
+          statusCode: 500,
+          body: { error: "Erro interno ao processar a solicitação." }
+      };
+  }
 }
 
 
@@ -227,5 +251,6 @@ export {
     updateUserPay,
     addPassengerUser,
     addNewUser,
-    getRaceInfo
+    getRaceInfo,
+    changeRacePassengerStatus,
 }
