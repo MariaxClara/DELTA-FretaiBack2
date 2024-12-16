@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -253,6 +253,43 @@ async function storeMessage(senderId, receiverId, content) {
   }
 }
 
+async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
+  if (!user__id) {
+    return { statusCode: 400, body: { error: 'Usuario é necessário' } };
+  }
+  if (!rotas_id) {
+    return { statusCode: 400, body: { error: 'A rota é necessária' } };
+  }
+  if (ida == null) {
+    return { statusCode: 400, body: { error: 'A ida é necessária' } };
+  }
+  if (volta == null) {
+    return { statusCode: 400, body: { error: 'A volta é necessária' } };
+  }
+  if (!year) {
+    return { statusCode: 400, body: { error: 'O ano é necessário' } };
+  }
+  if (!month) {
+    return { statusCode: 400, body: { error: 'O mês é necessário' } };
+  }
+  if (!day) {
+    return { statusCode: 400, body: { error: 'O dia é necessário' } };
+  }
+  let res;
+  const exists = await getCalendario(user__id, rotas_id, year, month, day);
+  if (exists) {
+    res = await updateCalendario(user__id, rotas_id, ida, volta, year, month, day);
+  }
+  else {
+    res = await addCalendario(user__id, rotas_id, ida, volta, year, month, day);
+  }
+
+  if (!res) {
+    return { statusCode: 404, body: { error: 'Não foi possível atualizar o calendário' } };
+  }
+  return { statusCode: 200, body: { message: 'success' } }
+  }
+
 
 
 
@@ -274,5 +311,6 @@ export {
     addPassengerUser,
     addNewUser,
     getRaceInfo,
-    changeRacePassengerStatus
+    changeRacePassengerStatus,
+    setCalendario
 }
