@@ -2,7 +2,7 @@ import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -234,6 +234,13 @@ router.get('/user-type', async (req, res) => {
 router.post('/chat', async (req, res) => {
   const { senderId, receiverId, content } = req.body;
   const response = await storeMessage(senderId, receiverId, content);
+
+  res.status(response.statusCode).json(response.body);
+});
+
+router.post('/setCalendario', async (req, res) => {
+  const { user__id, rotas_id, ida, volta, year, month, day } = req.body;
+  const response = await setCalendario(user__id, rotas_id, ida, volta, year, month, day);
 
   res.status(response.statusCode).json(response.body);
 });

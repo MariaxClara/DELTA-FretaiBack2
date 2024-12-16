@@ -509,13 +509,12 @@ async function updateCalendario(user__id, rotas_id, ida, volta, year, month, day
         SET ida = $1, volta = $2
         where c.passageiro_id = $3
         and c.rotas_id = $4
-        and c.data_viagem = TO_DATE('$5-$6-$7', 'YYYY-MM-DD')`,
-      [ida, volta, user__id, rotas_id, year, month, day]
+        and c.data_viagem = TO_DATE($5, 'YYYY-MM-DD')`,
+      [ida, volta, user__id, rotas_id, `${year}-${month}-${day}`]
     );
-
     if (res.rowCount === 0) return null;
 
-    return res.rows[0];
+    return 1;
   } catch (error) {
     console.error('Erro ao atualizar o calendario:', (error).message);
     return null;
@@ -529,13 +528,13 @@ async function addCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   try {
     const res = await client.query(
       `insert into calendario (passageiro_id,rotas_id,ida,volta,data_viagem)
-      values ($1, $2, $3, $4, TO_DATE('$5-$6-$7', 'YYYY-MM-DD'))`
-      [user__id, rotas_id, ida, volta, year, month, day]
+      values ($1, $2, $3, $4, TO_DATE($5, 'YYYY-MM-DD'))`,
+      [user__id, rotas_id, ida, volta, `${year}-${month}-${day}`]
     );
 
     if (res.rowCount === 0) return null;
 
-    return res.rows[0];
+    return 1;
   } catch (error) {
     console.error('Erro ao adicionar viagem:', (error).message);
     return null;
@@ -548,13 +547,14 @@ async function getCalendario(user__id, rotas_id, year, month, day) {
   const client = await pool.connect();
   try {
     const res = await client.query(
-      `select * from calendario c
-        where c.passageiro_id = $1
-        and c.rotas_id = $2
-        and c.data_viagem = TO_DATE('$3-$4-$5', 'YYYY-MM-DD')`,
-      [user__id, rotas_id, year, month, day]
+      `
+    select * from calendario c
+    where c.passageiro_id = $1
+    and c.rotas_id = $2
+    and c.data_viagem = TO_DATE($3, 'YYYY-MM-DD')
+    `,
+    [user__id, rotas_id, `${year}-${month}-${day}`]
     );
-
     if (res.rowCount === 0) return 0;
     return 1
 
