@@ -500,4 +500,70 @@ function changeRaceStatus(rota_id, passageiro_id ,status) {
     }
   });
 }
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage }
+
+async function updateCalendario(user__id, rotas_id, ida, volta, year, month, day) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `UPDATE calendario c
+        SET ida = $1, volta = $2
+        where c.passageiro_id = $3
+        and c.rotas_id = $4
+        and c.data_viagem = TO_DATE('$5-$6-$7', 'YYYY-MM-DD')`,
+      [ida, volta, user__id, rotas_id, year, month, day]
+    );
+
+    if (res.rowCount === 0) return null;
+
+    return res.rows[0];
+  } catch (error) {
+    console.error('Erro ao atualizar o calendario:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+async function addCalendario(user__id, rotas_id, ida, volta, year, month, day) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `insert into calendario (passageiro_id,rotas_id,ida,volta,data_viagem)
+      values ($1, $2, $3, $4, TO_DATE('$5-$6-$7', 'YYYY-MM-DD'))`
+      [user__id, rotas_id, ida, volta, year, month, day]
+    );
+
+    if (res.rowCount === 0) return null;
+
+    return res.rows[0];
+  } catch (error) {
+    console.error('Erro ao adicionar viagem:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+async function getCalendario(user__id, rotas_id, year, month, day) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query(
+      `select * from calendario c
+        where c.passageiro_id = $1
+        and c.rotas_id = $2
+        and c.data_viagem = TO_DATE('$3-$4-$5', 'YYYY-MM-DD')`,
+      [user__id, rotas_id, year, month, day]
+    );
+
+    if (res.rowCount === 0) return 0;
+    return 1
+
+  } catch (error) {
+    console.error('Erro ao buscar viagem:', (error).message);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario }
