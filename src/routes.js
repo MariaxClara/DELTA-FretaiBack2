@@ -2,7 +2,7 @@ import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -156,6 +156,18 @@ router.post('/addNewUser', async (req, res) => {
   try {
     const response  = await addNewUser(email, password, cpf, phone, name);
     res.status(response.statusCode).send('Usuário cadastrado com sucesso')
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
+});
+
+router.post('/deleteUser', async (req, res) => {
+  const { p_id, d_id } = req.body;
+  
+  try {
+    const response  = await deletePassenger(p_id,d_id);
+    res.status(response.statusCode).send('Usuário excluido')
   } catch (error) {
     console.log(error)
     res.status(500).send(error);

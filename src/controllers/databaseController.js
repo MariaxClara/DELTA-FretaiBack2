@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, getPassengerInfoById } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, getPassengerInfoById, deletePassengerFromDriver } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -304,7 +304,19 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   }
 
 
-
+  async function deletePassenger(p_id, d_id) {
+    if ((!p_id) || (!d_id)) {
+        return { statusCode: 400, body: { error: 'Id é necessário' } };
+    }
+    
+    const res = await deletePassengerFromDriver(p_id,d_id);
+    
+    if (!res) {
+        return { statusCode: 404, body: { error: 'Não foi possivel excluir o passageiro' } };
+    }
+    
+    return { statusCode: 200, body: res };
+}
 
 
 export {
@@ -326,5 +338,6 @@ export {
     getRaceInfo,
     changeRacePassengerStatus,
     setCalendario,
-    passengerInfoId
+    passengerInfoId,
+    deletePassenger
 }
