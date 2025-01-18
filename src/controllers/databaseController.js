@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, getPassengerInfoById } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -15,6 +15,19 @@ async function driverInfo(email) {
     return { statusCode: 200, body: driverInfo };
 }
 
+async function passengerInfoId(id) {
+  if (!id) {
+      return { statusCode: 400, body: { error: 'Id é necessário' } };
+  }
+
+  const userInfo = await getPassengerInfoById(id);
+
+  if (!userInfo) {
+      return { statusCode: 404, body: { error: 'Passageiro não encontrado' } };
+  }
+  
+  return { statusCode: 200, body: userInfo };
+}
 
 async function driverInvites(id) {
   if (!id) {
@@ -312,5 +325,6 @@ export {
     addNewUser,
     getRaceInfo,
     changeRacePassengerStatus,
-    setCalendario
+    setCalendario,
+    passengerInfoId
 }
