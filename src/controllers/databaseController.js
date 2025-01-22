@@ -63,7 +63,7 @@ async function imagePath(email) {
 
 async function login(email, password) {
     const user = await loginUser(email, password);
-
+    console.log('id', user.user_id)
     if (user) {
       return { status: 'success', user };
     } else {
