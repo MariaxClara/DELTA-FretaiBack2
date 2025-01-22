@@ -327,44 +327,9 @@ async function addPassenger(passageiro_user_id, motorista_id) {
 }
 
 async function getUserType(id) {
-  console.log('id no back',id);
-  const client = await pool.connect();
-  try {
-    // Verificar se o usuário é um motorista
-    const motoristaRes = await client.query(
-      `
-      SELECT user_id FROM motoristas
-      WHERE user_id = $1
-      `,
-      [id]
-    );
-
-    if (motoristaRes.rowCount > 0) {
-      return 0; // Retorna 0 para motorista
-    }
-
-    // Caso não tenha encontrado em motoristas, verifica em passageiros
-    const passageiroRes = await client.query(
-      `
-      SELECT user_id FROM passageiros
-      WHERE user_id = $1
-      `,
-      [id]
-    );
-
-    if (passageiroRes.rowCount > 0) {
-      return 1; // Retorna 1 para passageiro
-    }
-
-    // Caso não encontre em nenhuma tabela
-    return null;
-  } catch (error) {
-    console.error('Erro ao procurar o usuário:', error.message);
-    throw new Error('Erro na consulta ao banco de dados.');
-  } finally {
-    client.release(); // Garante que o cliente será liberado após a execução
-  }
+  return false
 }
+
 async function addUser(email, password, cpf, phone, name) {
   const client = await pool.connect();
   try {
@@ -480,6 +445,45 @@ async function getRaceInfoByEmail(email) {
   }
 }
 
+async function getDriversByEmail(email) {
+  try {
+    const client = await pool.connect();
+
+    console.log("Buscando informações da corrida para o email:", email);
+
+    const raceRes = await client.query(
+      `
+      select u.nome as nome_motorista from passageiros p
+      join motoristas m on m.motorista_id = p.motorista_id
+      join users u on u.user_id = m.user_id
+      join users u2 on p.user_id = u2.user_id
+      where u2.email = $1
+      `,
+      [email]
+    );
+    
+    // Nenhuma corrida encontrada
+    if (raceRes.rows.length === 0) {
+      console.log(
+        "Nenhuma corrida encontrada para o passageiro com o email:",
+        email
+      );
+      client.release();
+      return []; // Retorna array vazio
+    }
+
+    let raceInfo = raceRes.rows.map((row) => ({
+      motorista_nome: row.nome_motorista
+    }));
+    client.release();
+    console.log("Informações da corrida buscadas do banco:", raceInfo);
+    return raceInfo; // Retorna sempre array
+  } catch (error) {
+    console.error("Erro ao buscar informações da corrida:", error.message);
+    return []; // Retorna array vazio em caso de erro
+  }
+}
+
 function changeRaceStatus(rota_id, passageiro_id ,status) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -566,4 +570,4 @@ async function getCalendario(user__id, rotas_id, year, month, day) {
   }
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario }
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario }
