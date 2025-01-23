@@ -271,6 +271,27 @@ async function saveMessage(senderId, receiverId, content) {
   }
 }
 
+async function getPassengerInfoById(id) {
+  try {
+    const client = await pool.connect();
+    const res = await client.query(`
+      select distinct nome, email, telefone, pago 
+      from users u 
+      inner join passageiros p
+      on u.user_id = p.user_id
+      where p.user_id = $1
+    `, [id]);
+    client.release();
+
+    if (res.rows.length === 0) {
+      return null;
+    }
+    return res.rows;
+  } catch (error) {
+    console.error('Erro ao obter emails convidados:', (error).message);
+    return null;
+  }
+}
 
 
 async function getMessages(senderId, receiverId) {
@@ -566,4 +587,28 @@ async function getCalendario(user__id, rotas_id, year, month, day) {
   }
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario }
+async function deletePassengerFromDriver(p_id,d_id) {
+try {
+    const client = await pool.connect();
+    const res = await client.query(`
+      delete from passageiros p
+      where p.motorista_id = $1
+      and p.passageiro_id = $2;
+    `, [d_id, p_id]);
+
+    client.release();
+
+    if (res.rows.length === 0) {
+      return null;
+    }
+
+    return res.rows;
+
+  } catch (error) {
+    console.error('Erro ao excluir passageiro:', (error).message);
+    return null;
+  }
+
+}
+
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver }

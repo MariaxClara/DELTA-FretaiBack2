@@ -2,7 +2,7 @@ import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -56,9 +56,15 @@ router.get("/imagePath/:email", async (req, res) => {
       res.status(500).send(error);
     }
 })
-
-
-
+router.get("/passengerInfoId/:id", async (req, res) => {
+  const { id } =  req.params;
+  try{
+    const response = await passengerInfoId(id);
+    res.json(response);
+  } catch (error){
+    res.status(500).send(error);
+  }
+})
 router.get("/passengerInfo/:email", async (req, res) => {
   const { email } =  req.params;
   try{
@@ -150,6 +156,26 @@ router.post('/addNewUser', async (req, res) => {
   try {
     const response  = await addNewUser(email, password, cpf, phone, name);
     res.status(response.statusCode).send('Usuário cadastrado com sucesso')
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
+});
+
+router.post('/deleteUser', async (req, res) => {
+  const { p_id, d_id } = req.body;
+  
+  try {
+    const response  = await deletePassenger(p_id,d_id);
+    try {
+      let response = await passengerInfoId(id);
+      response = response.body
+      let msg = { to: response[0]['email'], from: "fretaiunifesp@gmail.com", subject: "Exclusão de van", text: "Viemos por meio deste email comunicar a remoção da Van. Caso isto seja um erro, entre em contato com o motorista."};
+      await sgMail.send(msg);
+      res.status(response.statusCode).send('Usuário excluido e notificado')
+    } catch {
+      res.status(response.statusCode).send('Usuário excluido, mas não notificado')
+    }
   } catch (error) {
     console.log(error)
     res.status(500).send(error);
