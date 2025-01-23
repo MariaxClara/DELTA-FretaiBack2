@@ -167,7 +167,15 @@ router.post('/deleteUser', async (req, res) => {
   
   try {
     const response  = await deletePassenger(p_id,d_id);
-    res.status(response.statusCode).send('Usuário excluido')
+    try {
+      let response = await passengerInfoId(id);
+      response = response.body
+      let msg = { to: response[0]['email'], from: "fretaiunifesp@gmail.com", subject: "Exclusão de van", text: "Viemos por meio deste email comunicar a remoção da Van. Caso isto seja um erro, entre em contato com o motorista."};
+      await sgMail.send(msg);
+      res.status(response.statusCode).send('Usuário excluido e notificado')
+    } catch {
+      res.status(response.statusCode).send('Usuário excluido, mas não notificado')
+    }
   } catch (error) {
     console.log(error)
     res.status(500).send(error);
