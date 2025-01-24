@@ -288,9 +288,34 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
     return { statusCode: 404, body: { error: 'Não foi possível atualizar o calendário' } };
   }
   return { statusCode: 200, body: { message: 'success' } }
+}
+
+
+async function getCalendarioInfo(user__id, rotas_id, year, month, day) {
+  // Validar os dados recebidos
+  if (!rotas_id || !user__id || !year || !month || !day === undefined) {
+      return {
+          statusCode: 400,
+          body: { error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id', 'ano', 'mes' e 'dia'." }
+      };
   }
 
+  try {
+      // Chamar a função para alterar o status no banco de dados
+      const result = await getCalendario(user__id, rotas_id, year, month, day);
 
+      // Retornar a mensagem de sucesso
+      return { statusCode: 200, body: { message: result } };
+  } catch (error) {
+      console.error("Erro ao pegar o status do dia:", error.message);
+
+      // Retornar mensagem de erro
+      return {
+          statusCode: 500,
+          body: { error: "Erro interno ao processar a solicitação." }
+      };
+  }
+}
 
 
 
@@ -312,5 +337,6 @@ export {
     addNewUser,
     getRaceInfo,
     changeRacePassengerStatus,
-    setCalendario
+    setCalendario,
+    getCalendarioInfo
 }

@@ -555,7 +555,7 @@ async function getCalendario(user__id, rotas_id, year, month, day) {
     `,
     [user__id, rotas_id, `${year}-${month}-${day}`]
     );
-    if (res.rowCount === 0) return 0;
+    if (res.rowCount === 0) return null;
     return 1
 
   } catch (error) {
