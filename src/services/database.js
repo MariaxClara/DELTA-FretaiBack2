@@ -453,7 +453,7 @@ async function getDriversByEmail(email) {
 
     const raceRes = await client.query(
       `
-      select u.nome as nome_motorista from passageiros p
+      select u.nome as nome_motorista, u.email as email_motorista from passageiros p
       join motoristas m on m.motorista_id = p.motorista_id
       join users u on u.user_id = m.user_id
       join users u2 on p.user_id = u2.user_id
@@ -473,7 +473,8 @@ async function getDriversByEmail(email) {
     }
 
     let raceInfo = raceRes.rows.map((row) => ({
-      motorista_nome: row.nome_motorista
+      motorista_nome: row.nome_motorista,
+      motorista_email: row.email_motorista
     }));
     client.release();
     console.log("Informações da corrida buscadas do banco:", raceInfo);
