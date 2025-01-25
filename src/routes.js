@@ -245,8 +245,8 @@ router.post('/setCalendario', async (req, res) => {
   res.status(response.statusCode).json(response.body);
 });
 
-router.get('/getCalendario/:rota_id/:passageiro_id/:year/:month', async (req, res) => {
-  const { rota_id, passageiro_id, year, month } = req.params; // Obtendo os parâmetros da rota
+router.get('/getCalendario/:rota_id/:passageiro_id/:year/:month/:day', async (req, res) => {
+  const { rota_id, passageiro_id, year, month, day } = req.params; // Obtendo os parâmetros da rota
 
   // Validação dos parâmetros
   if (!rota_id || !passageiro_id || !year || !month) {
@@ -255,12 +255,12 @@ router.get('/getCalendario/:rota_id/:passageiro_id/:year/:month', async (req, re
 
   try {
     // Chama a função principal para verificar e alterar o status da corrida
-    const response = await getCalendarioInfo(passageiro_id, rota_id, year, month);
+    const response = await getCalendarioInfo(passageiro_id, rota_id, year, month, day);
 
     // Retorna a resposta com o status e o body apropriados
     res.status(response.statusCode).send(response.body);
   } catch (error) {
-    console.error("Erro no endpoint /getCalendario/:rota_id/:passageiro_id/:year/:month", error.message);
+    console.error("Erro no endpoint /getCalendario/:rota_id/:passageiro_id/:year/:month/:day", error.message);
     res.status(500).send({ error: "Erro ao processar a solicitação." });
   }
 });

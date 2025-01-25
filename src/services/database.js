@@ -154,6 +154,7 @@ async function getUsersByDriverID(id){
     const client = await pool.connect();
     const res = await client.query(`
       select 
+      u.user_id as passageiro_id, 
       u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
       ui.image_path AS passageiro_imagem,
@@ -174,6 +175,7 @@ async function getUsersByDriverID(id){
     }
 
     return res.rows.map(row => ({
+      passageiro_id: row.passageiro_id,
       passageiro_nome: row.passageiro_nome,
       passageiro_email: row.passageiro_email,
       passageiro_image: row.passageiro_image,
