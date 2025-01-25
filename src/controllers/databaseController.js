@@ -291,9 +291,9 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
 }
 
 
-async function getCalendarioInfo(user__id, rotas_id, year, month, day) {
+async function getCalendarioInfo(user__id, rotas_id, year, month) {
   // Validar os dados recebidos
-  if (!rotas_id || !user__id || !year || !month || !day === undefined) {
+  if (!rotas_id || !user__id || !year || !month === undefined) {
       return {
           statusCode: 400,
           body: { error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id', 'ano', 'mes' e 'dia'." }
@@ -302,7 +302,7 @@ async function getCalendarioInfo(user__id, rotas_id, year, month, day) {
 
   try {
       // Chamar a função para alterar o status no banco de dados
-      const result = await getCalendario(user__id, rotas_id, year, month, day);
+      const result = await getCalendario(user__id, rotas_id, year, month);
 
       // Retornar a mensagem de sucesso
       return { statusCode: 200, body: { message: result } };

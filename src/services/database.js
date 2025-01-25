@@ -543,20 +543,37 @@ async function addCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   }
 }
 
-async function getCalendario(user__id, rotas_id, year, month, day) {
+async function getCalendario(user__id, rotas_id, year, month, day = 0) {
   const client = await pool.connect();
   try {
-    const res = await client.query(
-      `
-    select * from calendario c
-    where c.passageiro_id = $1
-    and c.rotas_id = $2
-    and c.data_viagem = TO_DATE($3, 'YYYY-MM-DD')
-    `,
-    [user__id, rotas_id, `${year}-${month}-${day}`]
-    );
-    if (res.rowCount === 0) return null;
-    return 1
+    if (day) {
+      const res = await client.query(
+        `
+      select * from calendario c
+      where c.passageiro_id = $1
+      and c.rotas_id = $2
+      and c.data_viagem = TO_DATE($3, 'YYYY-MM-DD')
+      `,
+      [user__id, rotas_id, `${year}-${month}-${day}`]
+      );
+      if (res.rowCount === 0) return null;
+      return 1
+    }
+    else {
+      const res = await client.query(
+        `
+      select ida, volta, extract(day from data_viagem) dia from calendario c
+      where c.passageiro_id = $1
+      and c.rotas_id = $2
+      and extract(year from c.data_viagem) = $3
+      and extract(month from timestamp c.data_viagem) = $4
+      order by extract(day from c.data_viagem)
+      `,
+      [user__id, rotas_id, year, month]
+      );
+      if (res.rowCount === 0) return null;
+      return res.rows;
+    }
 
   } catch (error) {
     console.error('Erro ao buscar viagem:', (error).message);
