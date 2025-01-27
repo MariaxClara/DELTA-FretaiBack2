@@ -245,8 +245,8 @@ router.post('/setCalendario', async (req, res) => {
   res.status(response.statusCode).json(response.body);
 });
 
-router.get('/getCalendario/:rota_id/:passageiro_id/:year/:month/:day', async (req, res) => {
-  const { rota_id, passageiro_id, year, month, day } = req.params; // Obtendo os parâmetros da rota
+router.get('/getCalendario/:passageiro_id/:rota_id/:year/:month/:day', async (req, res) => {
+  const { passageiro_id, rota_id, year, month, day } = req.params; // Obtendo os parâmetros da rota
 
   // Validação dos parâmetros
   if (!rota_id || !passageiro_id || !year || !month) {

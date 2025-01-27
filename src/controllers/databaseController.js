@@ -279,10 +279,10 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   const exists = await getCalendario(user__id, rotas_id, year, month, day);
   if (exists) {
     res = await updateCalendario(user__id, rotas_id, ida, volta, year, month, day);
-    //console.log("update");
+    console.log("update");
   }
   else {
-    //console.log("add");
+    console.log("add");
     res = await addCalendario(user__id, rotas_id, ida, volta, year, month, day);
   }
 
