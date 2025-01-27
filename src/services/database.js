@@ -369,31 +369,43 @@ async function getUserType(id) {
 async function addUser(email, password, cpf, phone, name) {
   const client = await pool.connect();
   try {
-    console.log('Inserindo usuário:', { email, password, cpf, phone, name });
-    const res = await client.query(
-      `
-      INSERT INTO users (email, senha, cpf, telefone, nome)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING user_id
-      `,
-      [email, password, cpf, phone, name]
-    );
-    console.log('Resposta do banco (addUser):', res.rows);
-
-    if (res.rowCount === 0) {
-      console.error('Nenhum usuário foi inserido.');
-      return null;
-    }
-
-    return res.rows[0]; // Deve retornar { user_id: <valor> }
+      const res = await client.query(
+          `
+          INSERT INTO users (email, senha, cpf, telefone, nome)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING user_id
+          `,
+          [email, password, cpf, phone, name]
+      );
+      return res.rows[0];
   } catch (error) {
-    console.error('Erro ao criar conta:', error.message);
-    return null;
+      console.error('Erro ao criar usuário:', error.message);
+      throw error;
   } finally {
-    client.release();
+      client.release();
   }
 }
 
+async function addMotorista(userId, modeloVeiculo, placaVeiculo) {
+  const client = await pool.connect();
+  try {
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const res = await client.query(
+          `
+          INSERT INTO motoristas (user_id, modelo_veiculo, placa_veiculo, invite_cod)
+          VALUES ($1, $2, $3, $4)
+          RETURNING motorista_id
+          `,
+          [userId, modeloVeiculo, placaVeiculo, inviteCode]
+      );
+      return res.rows[0];
+  } catch (error) {
+      console.error('Erro ao criar motorista:', error.message);
+      throw error;
+  } finally {
+      client.release();
+  }
+}
 
 
 
@@ -490,26 +502,7 @@ async function getRaceInfoByEmail(email) {
   }
 }
 
-async function addMotorista(userId, modeloVeiculo, placaVeiculo) {
-  const client = await pool.connect();
-  try {
-      const query = `
-          INSERT INTO motoristas (user_id, modelo_veiculo, placa_veiculo, invite_cod)
-          VALUES ($1, $2, $3, $4)
-          RETURNING motorista_id
-      `;
-      const inviteCode = generateInviteCode(); // Função para gerar código único
-      const values = [userId, modeloVeiculo, placaVeiculo, inviteCode];
-      const res = await client.query(query, values);
 
-      return res.rows[0];
-  } catch (error) {
-      console.error('Erro ao adicionar motorista:', error.message);
-      return null;
-  } finally {
-      client.release();
-  }
-}
 
 function generateInviteCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();

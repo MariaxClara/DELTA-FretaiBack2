@@ -1,4 +1,10 @@
+import sgMail from '@sendgrid/mail';
 import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
+
+
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -265,6 +271,50 @@ async function changeRacePassengerStatus(rota_id, passageiro_id, status_corrida)
   }
 }
 
+async function enviarEmailParaAprovacao(data) {
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = data;
+
+  try {
+      const approvalLink = `http://localhost:3000/cadastroMotorista/aprovar?nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&cpf=${encodeURIComponent(cpf)}&telefone=${encodeURIComponent(telefone)}&modelo_veiculo=${encodeURIComponent(modelo_veiculo)}&placa_veiculo=${encodeURIComponent(placa_veiculo)}`;
+
+      const msg = {
+          to: process.env.ADMIN_EMAIL, 
+          from: process.env.EMAIL_USER,
+          subject: 'Aprovação de Cadastro de Motorista',
+          text: `Um novo motorista deseja se cadastrar.\n\nClique no link para aprovar:\n${approvalLink}`,
+      };
+
+      await sgMail.send(msg);
+
+      return { statusCode: 200, body: { message: 'E-mail de aprovação enviado com sucesso.' } };
+  } catch (error) {
+      console.error('Erro ao enviar e-mail de aprovação:', error.message);
+      return { statusCode: 500, body: { error: 'Erro ao enviar e-mail.' } };
+  }
+}
+
+async function aprovarCadastroMotorista(data) {
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = data;
+
+  try {
+      const userRes = await addUser(email, senha, cpf, telefone, nome);
+      if (!userRes) {
+          return { statusCode: 400, body: { error: 'Erro ao cadastrar usuário.' } };
+      }
+
+      const userId = userRes.user_id;
+      const motoristaRes = await addMotorista(userId, modelo_veiculo, placa_veiculo);
+      if (!motoristaRes) {
+          return { statusCode: 400, body: { error: 'Erro ao cadastrar motorista.' } };
+      }
+
+      return { statusCode: 200, body: { message: 'Cadastro aprovado e motorista cadastrado com sucesso!' } };
+  } catch (error) {
+      console.error('Erro ao aprovar cadastro de motorista:', error.message);
+      return { statusCode: 500, body: { error: 'Erro ao processar aprovação.' } };
+  }
+}
+
 async function fetchMessages(senderId, receiverId) {
   if (!senderId || !receiverId) {
     return { statusCode: 400, body: { error: 'Sender e receiver são necessarios' } };
@@ -347,5 +397,7 @@ export {
     getRaceInfo,
     changeRacePassengerStatus,
     setCalendario,
-    cadastrarMotorista
+    cadastrarMotorista,
+    enviarEmailParaAprovacao,
+    aprovarCadastroMotorista
 }

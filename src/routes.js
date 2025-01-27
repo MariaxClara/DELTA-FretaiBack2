@@ -2,7 +2,7 @@ import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, cadastrarMotorista } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, enviarEmailParaAprovacao, aprovarCadastroMotorista } from "./controllers/databaseController.js";
 
 
 dotenv.config();
@@ -246,16 +246,30 @@ router.post('/setCalendario', async (req, res) => {
 });
 
 router.post('/cadastroMotorista', async (req, res) => {
-  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = req.body;
-
   try {
-      const response = await cadastrarMotorista(nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo);
+      const response = await enviarEmailParaAprovacao(req.body);
       res.status(response.statusCode).json(response.body);
   } catch (error) {
-      console.error('Erro na rota /cadastroMotorista:', error.message);
-      res.status(500).json({ error: 'Erro ao cadastrar motorista.' });
+      console.error('Erro no envio de e-mail para aprovação:', error.message);
+      res.status(500).json({ error: 'Erro interno no servidor.' });
   }
 });
+
+
+router.get('/cadastroMotorista/aprovar', async (req, res) => {
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = req.query;
+
+  try {
+      const response = await aprovarCadastroMotorista({
+          nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo
+      });
+      res.status(response.statusCode).json(response.body);
+  } catch (error) {
+      console.error('Erro ao aprovar cadastro:', error.message);
+      res.status(500).json({ error: 'Erro interno no servidor.' });
+  }
+});
+
 
 
 export default router;
