@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, getPassengerInfoById, deletePassengerFromDriver } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -15,6 +15,19 @@ async function driverInfo(email) {
     return { statusCode: 200, body: driverInfo };
 }
 
+async function passengerInfoId(id) {
+  if (!id) {
+      return { statusCode: 400, body: { error: 'Id é necessário' } };
+  }
+
+  const userInfo = await getPassengerInfoById(id);
+
+  if (!userInfo) {
+      return { statusCode: 404, body: { error: 'Passageiro não encontrado' } };
+  }
+  
+  return { statusCode: 200, body: userInfo };
+}
 
 async function driverInvites(id) {
   if (!id) {
@@ -310,7 +323,6 @@ async function getCalendarioInfo(user__id, rotas_id, year, month, day = 0) {
       return { statusCode: 200, body: { message: result } };
   } catch (error) {
       console.error("Erro ao pegar o status do dia:", error.message);
-
       // Retornar mensagem de erro
       return {
           statusCode: 500,
@@ -319,6 +331,19 @@ async function getCalendarioInfo(user__id, rotas_id, year, month, day = 0) {
   }
 }
 
+async function deletePassenger(p_id, d_id) {
+    if ((!p_id) || (!d_id)) {
+        return { statusCode: 400, body: { error: 'Id é necessário' } };
+    }
+    
+    const res = await deletePassengerFromDriver(p_id,d_id);
+    
+    if (!res) {
+        return { statusCode: 404, body: { error: 'Não foi possivel excluir o passageiro' } };
+    }
+    
+    return { statusCode: 200, body: res };
+}
 
 
 export {
@@ -340,5 +365,7 @@ export {
     getRaceInfo,
     changeRacePassengerStatus,
     setCalendario,
-    getCalendarioInfo
+    getCalendarioInfo,
+    passengerInfoId,
+    deletePassenger
 }
