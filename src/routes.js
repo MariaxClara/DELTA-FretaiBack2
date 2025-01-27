@@ -2,7 +2,7 @@ import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger, getCalendarioInfo } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger, getCalendarioInfo, enviarEmailParaAprovacao, aprovarCadastroMotorista } from "./controllers/databaseController.js";
 
 
 
@@ -271,6 +271,33 @@ router.post('/setCalendario', async (req, res) => {
 
   res.status(response.statusCode).json(response.body);
 });
+
+router.post('/cadastroMotorista', async (req, res) => {
+  try {
+      const response = await enviarEmailParaAprovacao(req.body);
+      res.status(response.statusCode).json(response.body);
+  } catch (error) {
+      console.error('Erro no envio de e-mail para aprovação:', error.message);
+      res.status(500).json({ error: 'Erro interno no servidor.' });
+  }
+});
+
+
+router.get('/cadastroMotorista/aprovar', async (req, res) => {
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = req.query;
+
+  try {
+      const response = await aprovarCadastroMotorista({
+          nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo
+      });
+      res.status(response.statusCode).json(response.body);
+  } catch (error) {
+      console.error('Erro ao aprovar cadastro:', error.message);
+      res.status(500).json({ error: 'Erro interno no servidor.' });
+  }
+});
+
+
 
 router.get('/getCalendario/:passageiro_id/:rota_id/:year/:month/:day', async (req, res) => {
   const { passageiro_id, rota_id, year, month, day } = req.params; // Obtendo os parâmetros da rota

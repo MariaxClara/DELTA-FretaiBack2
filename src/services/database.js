@@ -388,27 +388,49 @@ async function getUserType(id) {
     client.release(); // Garante que o cliente será liberado após a execução
   }
 }
+
 async function addUser(email, password, cpf, phone, name) {
   const client = await pool.connect();
   try {
-    const res = await client.query(
-      `
-      insert into users (user_id,email,senha,cpf,telefone,nome)
-      values ( ((select COUNT(*) from users) + 1), $1, $2, $3, $4, $5)
-      `,
-      [email, password, cpf, phone, name]
-    );
-
-    if (res.rowCount === 0) return null;
-    return res
-
+      const res = await client.query(
+          `
+          INSERT INTO users (email, senha, cpf, telefone, nome)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING user_id
+          `,
+          [email, password, cpf, phone, name]
+      );
+      return res.rows[0];
   } catch (error) {
-    console.error('Erro ao criar conta:', (error).message);
-    return null;
+      console.error('Erro ao criar usuário:', error.message);
+      throw error;
   } finally {
-    client.release();
+      client.release();
   }
 }
+
+async function addMotorista(userId, modeloVeiculo, placaVeiculo) {
+  const client = await pool.connect();
+  try {
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const res = await client.query(
+          `
+          INSERT INTO motoristas (user_id, modelo_veiculo, placa_veiculo, invite_cod)
+          VALUES ($1, $2, $3, $4)
+          RETURNING motorista_id
+          `,
+          [userId, modeloVeiculo, placaVeiculo, inviteCode]
+      );
+      return res.rows[0];
+  } catch (error) {
+      console.error('Erro ao criar motorista:', error.message);
+      throw error;
+  } finally {
+      client.release();
+  }
+}
+
+
 
 async function getRaceInfoByEmail(email) {
   try {
@@ -502,6 +524,15 @@ async function getRaceInfoByEmail(email) {
     return []; // Retorna array vazio em caso de erro
   }
 }
+
+
+
+function generateInviteCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+
+
 
 function changeRaceStatus(rota_id, passageiro_id ,status) {
   return new Promise(async (resolve, reject) => {
@@ -631,4 +662,4 @@ try {
 
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver }
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista }
