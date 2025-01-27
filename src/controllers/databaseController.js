@@ -1,4 +1,4 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -87,6 +87,40 @@ async function passengerInfo(email) {
   return { statusCode: 200, body: passengerInfo };
 
 }
+
+async function cadastrarMotorista(nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo) {
+  try {
+    console.log('Iniciando cadastro do motorista...');
+    console.log({ nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo });
+
+    // Inserir o usuário
+    const userResponse = await addUser(email, senha, cpf, telefone, nome);
+    console.log('Resposta de addUser:', userResponse);
+
+    if (!userResponse || !userResponse.user_id) {
+      console.error('Erro ao obter user_id do usuário cadastrado.');
+      return { statusCode: 400, body: { error: 'Erro ao cadastrar o usuário.' } };
+    }
+
+    const userId = userResponse.user_id;
+
+    // Inserir o motorista
+    const motoristaResponse = await addMotorista(userId, modelo_veiculo, placa_veiculo);
+    console.log('Resposta de addMotorista:', motoristaResponse);
+
+    if (!motoristaResponse) {
+      console.error('Erro ao inserir motorista.');
+      return { statusCode: 400, body: { error: 'Erro ao cadastrar o motorista.' } };
+    }
+
+    return { statusCode: 201, body: { message: 'Motorista cadastrado com sucesso!' } };
+  } catch (error) {
+    console.error('Erro no cadastro de motorista:', error.message);
+    return { statusCode: 500, body: { error: 'Erro ao cadastrar motorista.' } };
+  }
+}
+
+
 
 
 async function tables() {
@@ -312,5 +346,6 @@ export {
     addNewUser,
     getRaceInfo,
     changeRacePassengerStatus,
-    setCalendario
+    setCalendario,
+    cadastrarMotorista
 }
