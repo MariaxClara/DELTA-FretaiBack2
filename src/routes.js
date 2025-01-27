@@ -2,7 +2,8 @@ import { Router } from "express";
 import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, enviarEmailParaAprovacao, aprovarCadastroMotorista } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger, getCalendarioInfo, enviarEmailParaAprovacao, aprovarCadastroMotorista } from "./controllers/databaseController.js";
+
 
 
 dotenv.config();
@@ -56,9 +57,15 @@ router.get("/imagePath/:email", async (req, res) => {
       res.status(500).send(error);
     }
 })
-
-
-
+router.get("/passengerInfoId/:id", async (req, res) => {
+  const { id } =  req.params;
+  try{
+    const response = await passengerInfoId(id);
+    res.json(response);
+  } catch (error){
+    res.status(500).send(error);
+  }
+})
 router.get("/passengerInfo/:email", async (req, res) => {
   const { email } =  req.params;
   try{
@@ -150,6 +157,26 @@ router.post('/addNewUser', async (req, res) => {
   try {
     const response  = await addNewUser(email, password, cpf, phone, name);
     res.status(response.statusCode).send('Usuário cadastrado com sucesso')
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error);
+  }
+});
+
+router.post('/deleteUser', async (req, res) => {
+  const { p_id, d_id } = req.body;
+  
+  try {
+    const response  = await deletePassenger(p_id,d_id);
+    try {
+      let response = await passengerInfoId(id);
+      response = response.body
+      let msg = { to: response[0]['email'], from: "fretaiunifesp@gmail.com", subject: "Exclusão de van", text: "Viemos por meio deste email comunicar a remoção da Van. Caso isto seja um erro, entre em contato com o motorista."};
+      await sgMail.send(msg);
+      res.status(response.statusCode).send('Usuário excluido e notificado')
+    } catch {
+      res.status(response.statusCode).send('Usuário excluido, mas não notificado')
+    }
   } catch (error) {
     console.log(error)
     res.status(500).send(error);
@@ -271,5 +298,25 @@ router.get('/cadastroMotorista/aprovar', async (req, res) => {
 });
 
 
+
+router.get('/getCalendario/:passageiro_id/:rota_id/:year/:month/:day', async (req, res) => {
+  const { passageiro_id, rota_id, year, month, day } = req.params; // Obtendo os parâmetros da rota
+
+  // Validação dos parâmetros
+  if (!rota_id || !passageiro_id || !year || !month) {
+    return res.status(400).send({ error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id', 'ano' e 'mes'." });
+  }
+
+  try {
+    // Chama a função principal para verificar e alterar o status da corrida
+    const response = await getCalendarioInfo(passageiro_id, rota_id, year, month, day);
+
+    // Retorna a resposta com o status e o body apropriados
+    res.status(response.statusCode).send(response.body);
+  } catch (error) {
+    console.error("Erro no endpoint /getCalendario/:rota_id/:passageiro_id/:year/:month/:day", error.message);
+    res.status(500).send({ error: "Erro ao processar a solicitação." });
+  }
+});
 
 export default router;
