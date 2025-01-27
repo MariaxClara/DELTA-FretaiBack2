@@ -154,6 +154,7 @@ async function getUsersByDriverID(id){
     const client = await pool.connect();
     const res = await client.query(`
       select 
+      u.user_id as passageiro_id, 
       u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
       ui.image_path AS passageiro_imagem,
@@ -174,6 +175,7 @@ async function getUsersByDriverID(id){
     }
 
     return res.rows.map(row => ({
+      passageiro_id: row.passageiro_id,
       passageiro_nome: row.passageiro_nome,
       passageiro_email: row.passageiro_email,
       passageiro_image: row.passageiro_image,
@@ -564,20 +566,38 @@ async function addCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   }
 }
 
-async function getCalendario(user__id, rotas_id, year, month, day) {
+async function getCalendario(user__id, rotas_id, year, month, day = 0) {
   const client = await pool.connect();
   try {
-    const res = await client.query(
-      `
-    select * from calendario c
-    where c.passageiro_id = $1
-    and c.rotas_id = $2
-    and c.data_viagem = TO_DATE($3, 'YYYY-MM-DD')
-    `,
-    [user__id, rotas_id, `${year}-${month}-${day}`]
-    );
-    if (res.rowCount === 0) return 0;
-    return 1
+    if (day != 0) {
+      const res = await client.query(
+        `
+      select * from calendario c
+      where c.passageiro_id = $1
+      and c.rotas_id = $2
+      and c.data_viagem = TO_DATE($3, 'YYYY-MM-DD')
+      `,
+      [user__id, rotas_id, `${year}-${month}-${day}`]
+      );
+      if (res.rowCount === 0) return null;
+      return res.rows;
+    }
+    else {
+      const res = await client.query(
+        `
+      select ida, volta, extract(day from c.data_viagem) dia from calendario c
+      where c.passageiro_id = $1
+      and c.rotas_id = $2
+      and extract(year from c.data_viagem) = $3
+      and extract(month from c.data_viagem) = $4
+      order by extract(day from c.data_viagem)
+      `,
+      [user__id, rotas_id, year, month]
+      );
+      
+      if (res.rowCount === 0) return null;
+      return res.rows;
+    }
 
   } catch (error) {
     console.error('Erro ao buscar viagem:', (error).message);

@@ -292,8 +292,10 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   const exists = await getCalendario(user__id, rotas_id, year, month, day);
   if (exists) {
     res = await updateCalendario(user__id, rotas_id, ida, volta, year, month, day);
+    console.log("update");
   }
   else {
+    console.log("add");
     res = await addCalendario(user__id, rotas_id, ida, volta, year, month, day);
   }
 
@@ -301,10 +303,35 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
     return { statusCode: 404, body: { error: 'Não foi possível atualizar o calendário' } };
   }
   return { statusCode: 200, body: { message: 'success' } }
+}
+
+
+async function getCalendarioInfo(user__id, rotas_id, year, month, day = 0) {
+  // Validar os dados recebidos
+  if (!rotas_id || !user__id || !year || !month === undefined) {
+      return {
+          statusCode: 400,
+          body: { error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id', 'ano' e 'mes'." }
+      };
   }
 
+  try {
+      // Chamar a função para alterar o status no banco de dados
+      const result = await getCalendario(user__id, rotas_id, year, month, day);
 
-  async function deletePassenger(p_id, d_id) {
+      // Retornar a mensagem de sucesso
+      return { statusCode: 200, body: { message: result } };
+  } catch (error) {
+      console.error("Erro ao pegar o status do dia:", error.message);
+      // Retornar mensagem de erro
+      return {
+          statusCode: 500,
+          body: { error: "Erro interno ao processar a solicitação." }
+      };
+  }
+}
+
+async function deletePassenger(p_id, d_id) {
     if ((!p_id) || (!d_id)) {
         return { statusCode: 400, body: { error: 'Id é necessário' } };
     }
@@ -338,6 +365,7 @@ export {
     getRaceInfo,
     changeRacePassengerStatus,
     setCalendario,
+    getCalendarioInfo,
     passengerInfoId,
     deletePassenger
 }
