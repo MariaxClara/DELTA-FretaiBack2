@@ -467,7 +467,7 @@ export {
     setCalendario,
     cadastrarMotorista,
     enviarEmailParaAprovacao,
-    aprovarCadastroMotorista
+    aprovarCadastroMotorista,
     getCalendarioInfo,
     passengerInfoId,
     deletePassenger
