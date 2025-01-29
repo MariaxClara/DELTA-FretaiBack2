@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
 
 
 
@@ -259,6 +259,20 @@ async function getRaceInfo(email) {
   return { statusCode: 200, body: { raceInfo } };
 }
 
+async function getDrivers(email) {
+  if (!email) {
+      return { statusCode: 400, body: { error: 'Email é necessário' } };
+  }
+
+  const raceInfo = await getDriversByEmail(email);
+
+  if (!raceInfo || raceInfo.length === 0) {
+      return { statusCode: 404, body: { error: 'Passageiro não encontrado para o passageiro' } };
+  }
+
+  return { statusCode: 200, body: { raceInfo } };
+}
+
 async function changeRacePassengerStatus(rota_id, passageiro_id, status_corrida) {
   // Validar os dados recebidos
   if (!rota_id || !passageiro_id || status_corrida === undefined) {
@@ -448,6 +462,7 @@ export {
     addPassengerUser,
     addNewUser,
     getRaceInfo,
+    getDrivers,
     changeRacePassengerStatus,
     setCalendario,
     cadastrarMotorista,

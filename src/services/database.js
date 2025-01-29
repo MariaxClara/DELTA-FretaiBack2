@@ -525,14 +525,51 @@ async function getRaceInfoByEmail(email) {
   }
 }
 
+async function getDriversByEmail(email) {
+  try {
+    const client = await pool.connect();
+
+    console.log("Buscando informações da corrida para o email:", email);
+
+    const raceRes = await client.query(
+      `
+      select u.nome as nome_motorista, u.email as email_motorista from passageiros p
+      join motoristas m on m.motorista_id = p.motorista_id
+      join users u on u.user_id = m.user_id
+      join users u2 on p.user_id = u2.user_id
+      where u2.email = $1
+      `,
+      [email]
+    );
+    
+    // Nenhuma corrida encontrada
+    if (raceRes.rows.length === 0) {
+      console.log(
+        "Nenhuma corrida encontrada para o passageiro com o email:",
+        email
+      );
+      client.release();
+      return []; // Retorna array vazio
+    }
+
+    let raceInfo = raceRes.rows.map((row) => ({
+      motorista_nome: row.nome_motorista,
+      motorista_email: row.email_motorista
+    }));
+    client.release();
+    console.log("Informações da corrida buscadas do banco:", raceInfo);
+    return raceInfo; // Retorna sempre array
+  } catch (error) {
+    console.error("Erro ao buscar informações da corrida:", error.message);
+    return []; // Retorna array vazio em caso de erro
+  }
+}
+
 
 
 function generateInviteCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
-
-
-
 
 function changeRaceStatus(rota_id, passageiro_id ,status) {
   return new Promise(async (resolve, reject) => {
@@ -638,6 +675,7 @@ async function getCalendario(user__id, rotas_id, year, month, day = 0) {
   }
 }
 
+
 async function deletePassengerFromDriver(p_id,d_id) {
 try {
     const client = await pool.connect();
@@ -662,4 +700,5 @@ try {
 
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista }
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista }
+
