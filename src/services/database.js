@@ -154,6 +154,7 @@ async function getUsersByDriverID(id){
     const client = await pool.connect();
     const res = await client.query(`
       select 
+      u.user_id as passageiro_id, 
       u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
       ui.image_path AS passageiro_imagem,
@@ -174,6 +175,7 @@ async function getUsersByDriverID(id){
     }
 
     return res.rows.map(row => ({
+      passageiro_id: row.passageiro_id,
       passageiro_nome: row.passageiro_nome,
       passageiro_email: row.passageiro_email,
       passageiro_image: row.passageiro_image,
@@ -271,6 +273,27 @@ async function saveMessage(senderId, receiverId, content) {
   }
 }
 
+async function getPassengerInfoById(id) {
+  try {
+    const client = await pool.connect();
+    const res = await client.query(`
+      select distinct nome, email, telefone, pago 
+      from users u 
+      inner join passageiros p
+      on u.user_id = p.user_id
+      where p.user_id = $1
+    `, [id]);
+    client.release();
+
+    if (res.rows.length === 0) {
+      return null;
+    }
+    return res.rows;
+  } catch (error) {
+    console.error('Erro ao obter emails convidados:', (error).message);
+    return null;
+  }
+}
 
 
 async function getMessages(senderId, receiverId) {
@@ -333,24 +356,45 @@ async function getUserType(id) {
 async function addUser(email, password, cpf, phone, name) {
   const client = await pool.connect();
   try {
-    const res = await client.query(
-      `
-      insert into users (user_id,email,senha,cpf,telefone,nome)
-      values ( ((select COUNT(*) from users) + 1), $1, $2, $3, $4, $5)
-      `,
-      [email, password, cpf, phone, name]
-    );
-
-    if (res.rowCount === 0) return null;
-    return res
-
+      const res = await client.query(
+          `
+          INSERT INTO users (email, senha, cpf, telefone, nome)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING user_id
+          `,
+          [email, password, cpf, phone, name]
+      );
+      return res.rows[0];
   } catch (error) {
-    console.error('Erro ao criar conta:', (error).message);
-    return null;
+      console.error('Erro ao criar usuário:', error.message);
+      throw error;
   } finally {
-    client.release();
+      client.release();
   }
 }
+
+async function addMotorista(userId, modeloVeiculo, placaVeiculo) {
+  const client = await pool.connect();
+  try {
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const res = await client.query(
+          `
+          INSERT INTO motoristas (user_id, modelo_veiculo, placa_veiculo, invite_cod)
+          VALUES ($1, $2, $3, $4)
+          RETURNING motorista_id
+          `,
+          [userId, modeloVeiculo, placaVeiculo, inviteCode]
+      );
+      return res.rows[0];
+  } catch (error) {
+      console.error('Erro ao criar motorista:', error.message);
+      throw error;
+  } finally {
+      client.release();
+  }
+}
+
+
 
 async function getRaceInfoByEmail(email) {
   try {
@@ -485,6 +529,12 @@ async function getDriversByEmail(email) {
   }
 }
 
+
+
+function generateInviteCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 function changeRaceStatus(rota_id, passageiro_id ,status) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -548,20 +598,38 @@ async function addCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   }
 }
 
-async function getCalendario(user__id, rotas_id, year, month, day) {
+async function getCalendario(user__id, rotas_id, year, month, day = 0) {
   const client = await pool.connect();
   try {
-    const res = await client.query(
-      `
-    select * from calendario c
-    where c.passageiro_id = $1
-    and c.rotas_id = $2
-    and c.data_viagem = TO_DATE($3, 'YYYY-MM-DD')
-    `,
-    [user__id, rotas_id, `${year}-${month}-${day}`]
-    );
-    if (res.rowCount === 0) return 0;
-    return 1
+    if (day != 0) {
+      const res = await client.query(
+        `
+      select * from calendario c
+      where c.passageiro_id = $1
+      and c.rotas_id = $2
+      and c.data_viagem = TO_DATE($3, 'YYYY-MM-DD')
+      `,
+      [user__id, rotas_id, `${year}-${month}-${day}`]
+      );
+      if (res.rowCount === 0) return null;
+      return res.rows;
+    }
+    else {
+      const res = await client.query(
+        `
+      select ida, volta, extract(day from c.data_viagem) dia from calendario c
+      where c.passageiro_id = $1
+      and c.rotas_id = $2
+      and extract(year from c.data_viagem) = $3
+      and extract(month from c.data_viagem) = $4
+      order by extract(day from c.data_viagem)
+      `,
+      [user__id, rotas_id, year, month]
+      );
+      
+      if (res.rowCount === 0) return null;
+      return res.rows;
+    }
 
   } catch (error) {
     console.error('Erro ao buscar viagem:', (error).message);
@@ -571,4 +639,30 @@ async function getCalendario(user__id, rotas_id, year, month, day) {
   }
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario }
+
+async function deletePassengerFromDriver(p_id,d_id) {
+try {
+    const client = await pool.connect();
+    const res = await client.query(`
+      delete from passageiros p
+      where p.motorista_id = $1
+      and p.passageiro_id = $2;
+    `, [d_id, p_id]);
+
+    client.release();
+
+    if (res.rows.length === 0) {
+      return null;
+    }
+
+    return res.rows;
+
+  } catch (error) {
+    console.error('Erro ao excluir passageiro:', (error).message);
+    return null;
+  }
+
+}
+
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista }
+

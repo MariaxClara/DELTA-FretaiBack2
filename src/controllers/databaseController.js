@@ -1,4 +1,11 @@
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario } from '../services/database.js';
+import sgMail from '@sendgrid/mail';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
+
+
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+
 
 //GET FUNCTIONS
 async function driverInfo(email) {
@@ -15,6 +22,19 @@ async function driverInfo(email) {
     return { statusCode: 200, body: driverInfo };
 }
 
+async function passengerInfoId(id) {
+  if (!id) {
+      return { statusCode: 400, body: { error: 'Id é necessário' } };
+  }
+
+  const userInfo = await getPassengerInfoById(id);
+
+  if (!userInfo) {
+      return { statusCode: 404, body: { error: 'Passageiro não encontrado' } };
+  }
+  
+  return { statusCode: 200, body: userInfo };
+}
 
 async function driverInvites(id) {
   if (!id) {
@@ -87,6 +107,40 @@ async function passengerInfo(email) {
   return { statusCode: 200, body: passengerInfo };
 
 }
+
+async function cadastrarMotorista(nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo) {
+  try {
+    console.log('Iniciando cadastro do motorista...');
+    console.log({ nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo });
+
+    // Inserir o usuário
+    const userResponse = await addUser(email, senha, cpf, telefone, nome);
+    console.log('Resposta de addUser:', userResponse);
+
+    if (!userResponse || !userResponse.user_id) {
+      console.error('Erro ao obter user_id do usuário cadastrado.');
+      return { statusCode: 400, body: { error: 'Erro ao cadastrar o usuário.' } };
+    }
+
+    const userId = userResponse.user_id;
+
+    // Inserir o motorista
+    const motoristaResponse = await addMotorista(userId, modelo_veiculo, placa_veiculo);
+    console.log('Resposta de addMotorista:', motoristaResponse);
+
+    if (!motoristaResponse) {
+      console.error('Erro ao inserir motorista.');
+      return { statusCode: 400, body: { error: 'Erro ao cadastrar o motorista.' } };
+    }
+
+    return { statusCode: 201, body: { message: 'Motorista cadastrado com sucesso!' } };
+  } catch (error) {
+    console.error('Erro no cadastro de motorista:', error.message);
+    return { statusCode: 500, body: { error: 'Erro ao cadastrar motorista.' } };
+  }
+}
+
+
 
 
 async function tables() {
@@ -245,6 +299,50 @@ async function changeRacePassengerStatus(rota_id, passageiro_id, status_corrida)
   }
 }
 
+async function enviarEmailParaAprovacao(data) {
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = data;
+
+  try {
+      const approvalLink = `http://localhost:3000/cadastroMotorista/aprovar?nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&cpf=${encodeURIComponent(cpf)}&telefone=${encodeURIComponent(telefone)}&modelo_veiculo=${encodeURIComponent(modelo_veiculo)}&placa_veiculo=${encodeURIComponent(placa_veiculo)}`;
+
+      const msg = {
+          to: process.env.ADMIN_EMAIL, 
+          from: process.env.EMAIL_USER,
+          subject: 'Aprovação de Cadastro de Motorista',
+          text: `Um novo motorista deseja se cadastrar.\n\nClique no link para aprovar:\n${approvalLink}`,
+      };
+
+      await sgMail.send(msg);
+
+      return { statusCode: 200, body: { message: 'E-mail de aprovação enviado com sucesso.' } };
+  } catch (error) {
+      console.error('Erro ao enviar e-mail de aprovação:', error.message);
+      return { statusCode: 500, body: { error: 'Erro ao enviar e-mail.' } };
+  }
+}
+
+async function aprovarCadastroMotorista(data) {
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = data;
+
+  try {
+      const userRes = await addUser(email, senha, cpf, telefone, nome);
+      if (!userRes) {
+          return { statusCode: 400, body: { error: 'Erro ao cadastrar usuário.' } };
+      }
+
+      const userId = userRes.user_id;
+      const motoristaRes = await addMotorista(userId, modelo_veiculo, placa_veiculo);
+      if (!motoristaRes) {
+          return { statusCode: 400, body: { error: 'Erro ao cadastrar motorista.' } };
+      }
+
+      return { statusCode: 200, body: { message: 'Cadastro aprovado e motorista cadastrado com sucesso!' } };
+  } catch (error) {
+      console.error('Erro ao aprovar cadastro de motorista:', error.message);
+      return { statusCode: 500, body: { error: 'Erro ao processar aprovação.' } };
+  }
+}
+
 async function fetchMessages(senderId, receiverId) {
   if (!senderId || !receiverId) {
     return { statusCode: 400, body: { error: 'Sender e receiver são necessarios' } };
@@ -293,8 +391,10 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
   const exists = await getCalendario(user__id, rotas_id, year, month, day);
   if (exists) {
     res = await updateCalendario(user__id, rotas_id, ida, volta, year, month, day);
+    console.log("update");
   }
   else {
+    console.log("add");
     res = await addCalendario(user__id, rotas_id, ida, volta, year, month, day);
   }
 
@@ -302,10 +402,47 @@ async function setCalendario(user__id, rotas_id, ida, volta, year, month, day) {
     return { statusCode: 404, body: { error: 'Não foi possível atualizar o calendário' } };
   }
   return { statusCode: 200, body: { message: 'success' } }
+}
+
+
+async function getCalendarioInfo(user__id, rotas_id, year, month, day = 0) {
+  // Validar os dados recebidos
+  if (!rotas_id || !user__id || !year || !month === undefined) {
+      return {
+          statusCode: 400,
+          body: { error: "Dados incompletos. Certifique-se de enviar 'rota_id', 'passageiro_id', 'ano' e 'mes'." }
+      };
   }
 
+  try {
+      // Chamar a função para alterar o status no banco de dados
+      const result = await getCalendario(user__id, rotas_id, year, month, day);
 
+      // Retornar a mensagem de sucesso
+      return { statusCode: 200, body: { message: result } };
+  } catch (error) {
+      console.error("Erro ao pegar o status do dia:", error.message);
+      // Retornar mensagem de erro
+      return {
+          statusCode: 500,
+          body: { error: "Erro interno ao processar a solicitação." }
+      };
+  }
+}
 
+async function deletePassenger(p_id, d_id) {
+    if ((!p_id) || (!d_id)) {
+        return { statusCode: 400, body: { error: 'Id é necessário' } };
+    }
+    
+    const res = await deletePassengerFromDriver(p_id,d_id);
+    
+    if (!res) {
+        return { statusCode: 404, body: { error: 'Não foi possivel excluir o passageiro' } };
+    }
+    
+    return { statusCode: 200, body: res };
+}
 
 
 export {
@@ -327,5 +464,11 @@ export {
     getRaceInfo,
     getDrivers,
     changeRacePassengerStatus,
-    setCalendario
+    setCalendario,
+    cadastrarMotorista,
+    enviarEmailParaAprovacao,
+    aprovarCadastroMotorista
+    getCalendarioInfo,
+    passengerInfoId,
+    deletePassenger
 }
