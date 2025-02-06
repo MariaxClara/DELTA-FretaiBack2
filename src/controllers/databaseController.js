@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser,getPassengerInfoById, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
 
 
 
