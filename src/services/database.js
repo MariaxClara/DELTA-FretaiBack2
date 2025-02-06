@@ -92,17 +92,11 @@ async function getPassengerInfoByEmail(email) {
 
     const res = await client.query(`
       SELECT 
-          p.nome AS passageiro_nome, 
-          u.email AS passageiro_email, 
-          p.telefone AS passageiro_telefone,
-          m.nome AS motorista_nome,
-          m.telefone AS motorista_telefone
-      FROM passageiros p
-      JOIN users u ON p.user_id = u.user_id
-      LEFT JOIN relacionamento_passageiro_rotas rpr ON p.passageiro_id = rpr.passageiro_id
-      LEFT JOIN rotas r ON rpr.rotas_id = r.rota_id
-      LEFT JOIN motoristas m ON r.motorista_id = m.motorista_id
-      WHERE u.email = $1
+        u.nome AS passageiro_nome, 
+        u.email AS passageiro_email, 
+        u.telefone AS passageiro_telefone
+      FROM users u 
+      WHERE u.email = $1;
     `, [email]);
 
     client.release();
