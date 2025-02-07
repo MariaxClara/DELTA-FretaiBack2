@@ -164,8 +164,43 @@ async function getUsersByDriverID(id){
       on m.motorista_id = p.motorista_id
       inner join users u 
       on u.user_id = p.user_id 
-      inner join user_images ui 
+      left join user_images ui 
       on ui.user_id = p.user_id
+      where m.user_id = $1
+    `, [id]);
+    client.release();
+
+    if (res.rows.length === 0) {
+      return null;
+    }
+
+    return res.rows.map(row => ({
+      passageiro_id: row.passageiro_id,
+      passageiro_nome: row.passageiro_nome,
+      passageiro_email: row.passageiro_email,
+      passageiro_image: row.passageiro_image,
+      passageiro_pagamento: row.passageiro_pagamento
+    }));
+  } catch (error) {
+    console.error('Erro ao obter informações dos passageiros:', (error).message);
+    return null;
+  }
+}
+
+async function getUsersByDriverID2(id){
+  try {
+    const client = await pool.connect();
+    const res = await client.query(`
+      select 
+      u.user_id as passageiro_id, 
+      u.nome AS passageiro_nome, 
+      u.email AS passageiro_email,
+      p.pago AS passageiro_pagamento
+      from passageiros p 
+      inner join motoristas m 
+      on m.motorista_id = p.motorista_id
+      inner join users u 
+      on u.user_id = p.user_id 
       where m.user_id = $1
     `, [id]);
     client.release();
@@ -700,5 +735,27 @@ try {
 
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista }
+async function getMaxPassageirosById(driverId) {
+  try {
+    const client = await pool.connect();
+
+    console.log("Buscando quantidade máxima de passageiros para o driver ID:", driverId);
+
+    const res = await client.query(
+      `
+      SELECT max_passageiros FROM motoristas WHERE motorista_id = $1
+      `,
+      [driverId]
+    );
+    
+    if (res.rowCount === 0) return null;
+    console.log('max passageiros: ', res.rows);
+    return res.rows;
+  } catch (error) {
+    console.error("Erro ao buscar maxPassageiros: ", error.message);
+    return null;
+  }
+}
+
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, getUsersByDriverID2, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista, getMaxPassageirosById }
 

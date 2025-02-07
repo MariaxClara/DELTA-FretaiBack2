@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, getUsersByDriverID2, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista, getMaxPassageirosById } from '../services/database.js';
 
 
 
@@ -20,6 +20,20 @@ async function driverInfo(email) {
     }
     
     return { statusCode: 200, body: driverInfo };
+}
+
+async function maxPassageiros(driverId) {
+  if (!driverId) {
+    return { statusCode: 400, body: { error: 'Driver ID é necessário'}};
+  }
+
+  const maxPassageiros = await getMaxPassageirosById(driverId);
+
+  if (!maxPassageiros) {
+    return { statusCode: 404, body: { error: 'valor máximo de passageiros não encontrado'}};
+  }
+
+  return { statusCode: 200, body: maxPassageiros };
 }
 
 async function passengerInfoId(id) {
@@ -66,6 +80,19 @@ async function driverUsers(id) {
     return { statusCode: 200, body: usersDriverInfo };
 }
 
+async function driverUsers2(id) {
+  if (!id) {
+      return { statusCode: 400, body: { error: 'Id é necessário' } };
+  }
+  
+  const usersDriverInfo = await getUsersByDriverID2(id);
+  
+  if (!usersDriverInfo) {
+      return { statusCode: 404, body: { error: 'Passageiros do motorista não encontrados' } };
+  }
+  
+  return { statusCode: 200, body: usersDriverInfo };
+}
 
 async function imagePath(email) {
     if (!email) {
@@ -447,8 +474,10 @@ async function deletePassenger(p_id, d_id) {
 
 export {
     driverInfo,
+    maxPassageiros,
     driverInvites,
     driverUsers,
+    driverUsers2,
     imagePath,
     login,
     passengerInfo,

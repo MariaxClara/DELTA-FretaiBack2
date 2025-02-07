@@ -3,7 +3,7 @@ import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, getDrivers, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger, getCalendarioInfo, enviarEmailParaAprovacao, aprovarCadastroMotorista } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, driverUsers2, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, getDrivers, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger, getCalendarioInfo, enviarEmailParaAprovacao, aprovarCadastroMotorista, maxPassageiros } from "./controllers/databaseController.js";
 
 
 
@@ -49,6 +49,15 @@ router.get("/driverUsers/:id", async (req, res) => {
     } catch (error){
       res.status(500).send(error);
     }
+})
+router.get("/driverUsers2/:id", async (req, res) => {
+  const { id } =  req.params;
+  try{
+    const response = await driverUsers2(id);
+    res.json(response);
+  } catch (error){
+    res.status(500).send(error);
+  }
 })
 router.get("/imagePath/:email", async (req, res) => {
     const { email } =  req.params;
@@ -214,6 +223,19 @@ router.get('/getDrivers/:email', async (req, res) => {
     res.status(500).send({ error: "Erro ao processar a solicitação." });
   }
 });
+
+router.get('/maxPassageiros/:driverId', async (req, res) => {
+  const { driverId } = req.params; 
+  try {
+    const response = await maxPassageiros(driverId);
+    res.status(response.statusCode).send(response.body);
+  } catch (error) {
+    console.error("Erro no endpoint /maxPassageiros/:driverId", error.message);
+    res.status(500).send({ error: "Erro ao processar a solicitação." });
+  }
+});
+
+
 
 router.get('/changeRacePassengerStatus/:rota_id/:passageiro_id/:status_corrida', async (req, res) => {
   const { rota_id, passageiro_id, status_corrida } = req.params; // Obtendo os parâmetros da rota
