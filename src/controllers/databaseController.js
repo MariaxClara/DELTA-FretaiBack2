@@ -58,7 +58,7 @@ async function driverUsers(id) {
     }
     
     const usersDriverInfo = await getUsersByDriverID(id);
-    
+    console.log(usersDriverInfo)
     if (!usersDriverInfo) {
         return { statusCode: 404, body: { error: 'Passageiros do motorista não encontrados' } };
     }
