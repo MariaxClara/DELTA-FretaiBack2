@@ -1,5 +1,6 @@
 import sgMail from '@sendgrid/mail';
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista, getDriverRoutes } from '../services/database.js';
+
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser,getPassengerInfoById, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista, getDriverRoutes } from '../services/database.js';
 
 
 
@@ -83,7 +84,7 @@ async function imagePath(email) {
 
 async function login(email, password) {
     const user = await loginUser(email, password);
-
+    console.log('id', user.user_id)
     if (user) {
       return { status: 'success', user };
     } else {
@@ -483,6 +484,7 @@ export {
     aprovarCadastroMotorista,
     deletePassenger,
     enviarEmailParaAprovacao,
+    aprovarCadastroMotorista,
     getCalendarioInfo,
     passengerInfoId
 }
