@@ -173,6 +173,20 @@ async function driverInfoChatBot() {
 }
 
 
+async function driverInfoChatBot() {
+  const driverData = await getDriverRoutes();
+  
+  if (!driverData.length) {
+    return { statusCode: 404, body: { error: 'Nenhum motorista encontrado' } };
+  }
+  
+  // Log para verificar se a resposta está correta
+  console.log("Resposta da API antes de retornar:", { statusCode: 200, body: driverData });
+
+  return { statusCode: 200, body: driverData };
+}
+
+
 
 //POST FUNCTIONS
 async function addDriverInvite(email, id) {
@@ -484,5 +498,6 @@ export {
     deletePassenger,
     enviarEmailParaAprovacao,
     getCalendarioInfo,
+    passengerInfoId
     passengerInfoId
 }
