@@ -480,6 +480,7 @@ export {
     getDrivers,
     changeRacePassengerStatus,
     setCalendario,
+    cadastrarMotorista,
     driverInfoChatBot,
     aprovarCadastroMotorista,
     deletePassenger,
