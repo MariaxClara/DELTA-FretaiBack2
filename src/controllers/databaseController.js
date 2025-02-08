@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, getUsersByDriverID2, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista, getMaxPassageirosById } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista,getDriverRoutes,getMaxPassageirosById  } from '../services/database.js';
 
 
 
@@ -110,7 +110,7 @@ async function imagePath(email) {
 
 async function login(email, password) {
     const user = await loginUser(email, password);
-
+    console.log('id', user.user_id)
     if (user) {
       return { status: 'success', user };
     } else {
@@ -185,6 +185,34 @@ async function userType(id) {
   return { statusCode: 200, body: userType }
 
 }
+
+async function driverInfoChatBot() {
+  const driverData = await getDriverRoutes();
+  
+  if (!driverData.length) {
+    return { statusCode: 404, body: { error: 'Nenhum motorista encontrado' } };
+  }
+  
+  // Log para verificar se a resposta está correta
+  console.log("Resposta da API antes de retornar:", { statusCode: 200, body: driverData });
+
+  return { statusCode: 200, body: driverData };
+}
+
+
+async function driverInfoChatBot() {
+  const driverData = await getDriverRoutes();
+  
+  if (!driverData.length) {
+    return { statusCode: 404, body: { error: 'Nenhum motorista encontrado' } };
+  }
+  
+  // Log para verificar se a resposta está correta
+  console.log("Resposta da API antes de retornar:", { statusCode: 200, body: driverData });
+
+  return { statusCode: 200, body: driverData };
+}
+
 
 
 //POST FUNCTIONS
@@ -494,10 +522,11 @@ export {
     getDrivers,
     changeRacePassengerStatus,
     setCalendario,
-    cadastrarMotorista,
-    enviarEmailParaAprovacao,
+    driverInfoChatBot,
     aprovarCadastroMotorista,
+    deletePassenger,
+    enviarEmailParaAprovacao,
     getCalendarioInfo,
-    passengerInfoId,
-    deletePassenger
+    passengerInfoId
+    passengerInfoId
 }

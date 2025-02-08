@@ -3,7 +3,7 @@ import  sgMail from '@sendgrid/mail';
 import * as dotenv from "dotenv";
 
 
-import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, driverUsers2, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, getDrivers, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger, getCalendarioInfo, enviarEmailParaAprovacao, aprovarCadastroMotorista, maxPassageiros } from "./controllers/databaseController.js";
+import { addDriverInvite, addPassengerUser, changePassword, driverInfo, driverInvites, driverUsers, driverUsers2, imagePath, login, passengerInfo, tables, updateUserPay, addNewUser, getRaceInfo, getDrivers, changeRacePassengerStatus, userType, fetchMessages, storeMessage, setCalendario, passengerInfoId, deletePassenger, getCalendarioInfo, enviarEmailParaAprovacao, aprovarCadastroMotorista, maxPassageiros, driverInfoChatBot } from "./controllers/databaseController.js";
 
 
 
@@ -357,5 +357,19 @@ router.get('/getCalendario/:passageiro_id/:rota_id/:year/:month/:day', async (re
     res.status(500).send({ error: "Erro ao processar a solicitação." });
   }
 });
+
+router.get("/driverInfoChatBot", async (req, res) => {
+  try {
+    // Obtenha a resposta da função driverInfoChatBot
+    const response = await driverInfoChatBot();
+    
+    // Inclui o statusCode junto com o body
+    res.json({ statusCode: response.statusCode, body: response.body });
+  } catch (error) {
+    console.error("Erro ao processar a requisição:", error); // Log do erro
+    res.status(500).send(error); // Retorna o erro caso ocorra algum problema
+  }
+});
+
 
 export default router;

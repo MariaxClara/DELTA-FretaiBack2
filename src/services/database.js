@@ -92,17 +92,11 @@ async function getPassengerInfoByEmail(email) {
 
     const res = await client.query(`
       SELECT 
-          p.nome AS passageiro_nome, 
-          u.email AS passageiro_email, 
-          p.telefone AS passageiro_telefone,
-          m.nome AS motorista_nome,
-          m.telefone AS motorista_telefone
-      FROM passageiros p
-      JOIN users u ON p.user_id = u.user_id
-      LEFT JOIN relacionamento_passageiro_rotas rpr ON p.passageiro_id = rpr.passageiro_id
-      LEFT JOIN rotas r ON rpr.rotas_id = r.rota_id
-      LEFT JOIN motoristas m ON r.motorista_id = m.motorista_id
-      WHERE u.email = $1
+        u.nome AS passageiro_nome, 
+        u.email AS passageiro_email, 
+        u.telefone AS passageiro_telefone
+      FROM users u 
+      WHERE u.email = $1;
     `, [email]);
 
     client.release();
@@ -735,6 +729,52 @@ try {
 
 }
 
+async function getDriverRoutes() {
+  try {
+    const client = await pool.connect();
+
+    console.log("Buscando informações dos motoristas e suas rotas...");
+
+    const driverRes = await client.query(
+      `
+      SELECT 
+          u.nome AS motorista_nome, 
+          u.telefone AS motorista_telefone,
+          r.rota_id,
+          r.destino,
+          r.horario,
+          r.dia_da_semana
+      FROM motoristas m
+      JOIN users u ON m.user_id = u.user_id
+      LEFT JOIN rotas r ON m.motorista_id = r.motorista_id;
+      `
+    );
+
+    // Nenhum motorista encontrado
+    if (driverRes.rows.length === 0) {
+      console.log("Nenhum motorista encontrado no banco de dados.");
+      client.release();
+      return []; // Retorna array vazio
+    }
+
+    let driverRoutes = driverRes.rows.map((row) => ({
+      motorista_nome: row.motorista_nome,
+      motorista_telefone: row.motorista_telefone,
+      rota_id: row.rota_id,
+      destino: row.destino,
+      horario: row.horario,
+      dia_da_semana: row.dia_da_semana,
+    }));
+
+    client.release();
+    console.log("Informações dos motoristas e suas rotas buscadas do banco:", driverRoutes);
+    return driverRoutes; // Retorna sempre um array
+  } catch (error) {
+    console.error("Erro ao buscar informações dos motoristas e suas rotas:", error.message);
+    return []; // Retorna array vazio em caso de erro
+  }
+}
+
 async function getMaxPassageirosById(driverId) {
   try {
     const client = await pool.connect();
@@ -757,5 +797,5 @@ async function getMaxPassageirosById(driverId) {
   }
 }
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, getUsersByDriverID2, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista, getMaxPassageirosById }
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista, getDriverRoutes, getMaxPassageirosById }
 

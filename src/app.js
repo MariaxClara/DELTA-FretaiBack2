@@ -10,6 +10,8 @@ import { saveMessage } from './services/database.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocs from '../swagger.json' with { type: "json" };
 
+// /const swaggerDocs = require('../swagger.json');
+
 
 
 dotenv.config();
