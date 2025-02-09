@@ -143,7 +143,51 @@ async function getImagePathByUser(email) {
   }
 }
 
-async function getUsersByDriverID(id){
+async function getUsersByDriverID(id) {
+  try {
+    const client = await pool.connect();
+    const res = await client.query(
+      `
+      SELECT 
+      u.user_id AS passageiro_id, 
+      u.nome AS passageiro_nome, 
+      u.email AS passageiro_email,
+      ui.image_path AS passageiro_imagem,
+      p.pago AS passageiro_pagamento
+      FROM passageiros p 
+      INNER JOIN motoristas m 
+      ON m.motorista_id = p.motorista_id
+      INNER JOIN users u 
+      ON u.user_id = p.user_id 
+      LEFT JOIN user_images ui 
+      ON ui.user_id = p.user_id
+      WHERE m.user_id = $1
+      `,
+      [id]
+    );
+
+
+    client.release();
+
+    if (res.rows.length === 0) {
+      return null;
+    }
+
+    return res.rows.map((row) => ({
+      passageiro_id: row.passageiro_id,
+      passageiro_nome: row.passageiro_nome,
+      passageiro_email: row.passageiro_email,
+      passageiro_imagem: row.passageiro_imagem, // Corrigido nome da propriedade
+      passageiro_pagamento: row.passageiro_pagamento,
+    }));
+  } catch (error) {
+    console.error('Erro ao obter informações dos passageiros:', error.message);
+    return null;
+  }
+}
+
+
+async function getUsersByDriverID2(id){
   try {
     const client = await pool.connect();
     const res = await client.query(`
@@ -151,15 +195,12 @@ async function getUsersByDriverID(id){
       u.user_id as passageiro_id, 
       u.nome AS passageiro_nome, 
       u.email AS passageiro_email,
-      ui.image_path AS passageiro_imagem,
       p.pago AS passageiro_pagamento
       from passageiros p 
       inner join motoristas m 
       on m.motorista_id = p.motorista_id
       inner join users u 
       on u.user_id = p.user_id 
-      inner join user_images ui 
-      on ui.user_id = p.user_id
       where m.user_id = $1
     `, [id]);
     client.release();
@@ -403,17 +444,17 @@ async function addUser(email, password, cpf, phone, name) {
   }
 }
 
-async function addMotorista(userId, modeloVeiculo, placaVeiculo) {
+async function addMotorista(userId, modeloVeiculo, placaVeiculo, maxPassageiros) {
   const client = await pool.connect();
   try {
       const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const res = await client.query(
           `
-          INSERT INTO motoristas (user_id, modelo_veiculo, placa_veiculo, invite_cod)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO motoristas (user_id, modelo_veiculo, placa_veiculo, max_passageiros, invite_cod)
+          VALUES ($1, $2, $3, $4, $5)
           RETURNING motorista_id
           `,
-          [userId, modeloVeiculo, placaVeiculo, inviteCode]
+          [userId, modeloVeiculo, placaVeiculo, maxPassageiros, inviteCode]
       );
       return res.rows[0];
   } catch (error) {
@@ -423,6 +464,7 @@ async function addMotorista(userId, modeloVeiculo, placaVeiculo) {
       client.release();
   }
 }
+
 
 
 
@@ -747,9 +789,25 @@ async function getDriverRoutes() {
   }
 }
 
+async function getMaxPassageirosById(driverId) {
+  try {
+    const client = await pool.connect();
 
-export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista, getDriverRoutes }
 
+    const res = await client.query(
+      `
+      SELECT max_passageiros FROM motoristas WHERE motorista_id = $1
+      `,
+      [driverId]
+    );
+    
+    if (res.rowCount === 0) return null;
+    return res.rows;
+  } catch (error) {
+    console.error("Erro ao buscar maxPassageiros: ", error.message);
+    return null;
+  }
+}
 
-
+export { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, updateCalendario, getCalendario, getPassengerInfoById, deletePassengerFromDriver, addMotorista, getDriverRoutes, getMaxPassageirosById }
 
