@@ -527,11 +527,15 @@ async function getDriversByEmail(email) {
 
     const raceRes = await client.query(
       `
-      select u.nome as nome_motorista, u.email as email_motorista from passageiros p
-      join motoristas m on m.motorista_id = p.motorista_id
-      join users u on u.user_id = m.user_id
-      join users u2 on p.user_id = u2.user_id
-      where u2.email = $1
+      SELECT 
+        u.nome AS nome_motorista, 
+        u.email AS email_motorista,
+        m.motorista_id AS id_motorista 
+      FROM passageiros p
+      JOIN motoristas m ON m.motorista_id = p.motorista_id
+      JOIN users u ON u.user_id = m.user_id
+      JOIN users u2 ON p.user_id = u2.user_id
+      WHERE u2.email = $1
       `,
       [email]
     );
@@ -548,8 +552,10 @@ async function getDriversByEmail(email) {
 
     let raceInfo = raceRes.rows.map((row) => ({
       motorista_nome: row.nome_motorista,
-      motorista_email: row.email_motorista
+      motorista_email: row.email_motorista,
+      motorista_id: row.id_motorista  // Certifique-se de que a chave aqui corresponde ao alias usado no SELECT
     }));
+
     client.release();
     console.log("Informações da corrida buscadas do banco:", raceInfo);
     return raceInfo; // Retorna sempre array
@@ -558,6 +564,7 @@ async function getDriversByEmail(email) {
     return []; // Retorna array vazio em caso de erro
   }
 }
+
 
 
 
