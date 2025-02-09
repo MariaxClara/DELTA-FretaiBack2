@@ -323,11 +323,19 @@ router.post('/cadastroMotorista', async (req, res) => {
 
 
 router.get('/cadastroMotorista/aprovar', async (req, res) => {
-  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = req.query;
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo, capacidade_do_veiculo, max_passageiros } = req.query;
 
   try {
       const response = await aprovarCadastroMotorista({
-          nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo
+          nome, 
+          email, 
+          senha, 
+          cpf, 
+          telefone, 
+          modelo_veiculo, 
+          placa_veiculo, 
+          capacidade_do_veiculo, 
+          max_passageiros
       });
       res.status(response.statusCode).json(response.body);
   } catch (error) {
@@ -335,8 +343,6 @@ router.get('/cadastroMotorista/aprovar', async (req, res) => {
       res.status(500).json({ error: 'Erro interno no servidor.' });
   }
 });
-
-
 
 router.get('/getCalendario/:passageiro_id/:rota_id/:year/:month/:day', async (req, res) => {
   const { passageiro_id, rota_id, year, month, day } = req.params; // Obtendo os parâmetros da rota

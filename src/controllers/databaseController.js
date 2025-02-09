@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista,getDriverRoutes,getMaxPassageirosById  } from '../services/database.js';
+import { pool, loginUser, updatePassword, getTables, getDriverInfoByEmail, getPassengerInfoByEmail, getImagePathByUser, getUsersByDriverID, updatePay, getInviteUsersByDriverID, addUserEmailInvite, getUserType, addPassenger, getDriverByCode, addUser, getRaceInfoByEmail, getDriversByEmail, changeRaceStatus, getMessages, saveMessage, addCalendario, getCalendario, updateCalendario, addMotorista,getDriverRoutes, getMaxPassageirosById  } from '../services/database.js';
 
 
 
@@ -152,7 +152,7 @@ async function cadastrarMotorista(nome, email, senha, cpf, telefone, modelo_veic
     const userId = userResponse.user_id;
 
     // Inserir o motorista
-    const motoristaResponse = await addMotorista(userId, modelo_veiculo, placa_veiculo);
+    const motoristaResponse = await addMotorista(userId, modelo_veiculo, placa_veiculo, max_passageiros);
     console.log('Resposta de addMotorista:', motoristaResponse);
 
     if (!motoristaResponse) {
@@ -199,19 +199,6 @@ async function driverInfoChatBot() {
   return { statusCode: 200, body: driverData };
 }
 
-
-async function driverInfoChatBot() {
-  const driverData = await getDriverRoutes();
-  
-  if (!driverData.length) {
-    return { statusCode: 404, body: { error: 'Nenhum motorista encontrado' } };
-  }
-  
-  // Log para verificar se a resposta está correta
-  console.log("Resposta da API antes de retornar:", { statusCode: 200, body: driverData });
-
-  return { statusCode: 200, body: driverData };
-}
 
 
 
@@ -355,10 +342,10 @@ async function changeRacePassengerStatus(rota_id, passageiro_id, status_corrida)
 }
 
 async function enviarEmailParaAprovacao(data) {
-  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = data;
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo, capacidade_do_veiculo, max_passageiros } = data;
 
   try {
-      const approvalLink = `http://localhost:3000/cadastroMotorista/aprovar?nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&cpf=${encodeURIComponent(cpf)}&telefone=${encodeURIComponent(telefone)}&modelo_veiculo=${encodeURIComponent(modelo_veiculo)}&placa_veiculo=${encodeURIComponent(placa_veiculo)}`;
+      const approvalLink = `http://localhost:3000/cadastroMotorista/aprovar?nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&cpf=${encodeURIComponent(cpf)}&telefone=${encodeURIComponent(telefone)}&modelo_veiculo=${encodeURIComponent(modelo_veiculo)}&placa_veiculo=${encodeURIComponent(placa_veiculo)}&capacidade_do_veiculo=${encodeURIComponent(capacidade_do_veiculo)}&max_passageiros=${encodeURIComponent(max_passageiros)}`;
 
       const msg = {
           to: process.env.ADMIN_EMAIL, 
@@ -376,17 +363,21 @@ async function enviarEmailParaAprovacao(data) {
   }
 }
 
+
 async function aprovarCadastroMotorista(data) {
-  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo } = data;
+  const { nome, email, senha, cpf, telefone, modelo_veiculo, placa_veiculo, capacidade_do_veiculo, max_passageiros } = data;
 
   try {
+      // Adicionando o usuário
       const userRes = await addUser(email, senha, cpf, telefone, nome);
       if (!userRes) {
           return { statusCode: 400, body: { error: 'Erro ao cadastrar usuário.' } };
       }
 
       const userId = userRes.user_id;
-      const motoristaRes = await addMotorista(userId, modelo_veiculo, placa_veiculo);
+      
+      // Adicionando o motorista
+      const motoristaRes = await addMotorista(userId, modelo_veiculo, placa_veiculo, capacidade_do_veiculo, max_passageiros);
       if (!motoristaRes) {
           return { statusCode: 400, body: { error: 'Erro ao cadastrar motorista.' } };
       }
@@ -397,6 +388,7 @@ async function aprovarCadastroMotorista(data) {
       return { statusCode: 500, body: { error: 'Erro ao processar aprovação.' } };
   }
 }
+
 
 async function fetchMessages(senderId, receiverId) {
   if (!senderId || !receiverId) {
@@ -527,6 +519,5 @@ export {
     deletePassenger,
     enviarEmailParaAprovacao,
     getCalendarioInfo,
-    passengerInfoId
-    passengerInfoId
+    passengerInfoId,
 }
